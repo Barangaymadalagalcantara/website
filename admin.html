@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Portal | Barangay360</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+
+<!-- LOGIN -->
+<div id="loginView" class="login-wrap">
+  <form id="loginForm" class="login-card">
+    <img src="seal.png" alt="Barangay Madalag Seal" class="login-seal">
+    <span class="section-label">AUTHORIZED PERSONNEL</span>
+    <h2>Barangay Admin Portal</h2>
+    <p>Sign in to manage requests and announcements.</p>
+    <div class="form-group">
+      <label>Email</label>
+      <input id="loginEmail" type="email" required autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input id="loginPassword" type="password" required autocomplete="current-password">
+    </div>
+    <div id="loginError" class="login-error"></div>
+    <button class="primary-btn" type="submit" id="loginBtn">Sign In</button>
+    <a href="index.html" class="back-link">← Back to website</a>
+  </form>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashView" hidden>
+
+  <header class="adm-header">
+    <div class="adm-brand">
+      <img src="seal.png" alt="">
+      <div><strong>Barangay360 Admin</strong><small>Barangay Madalag</small></div>
+    </div>
+    <div class="adm-user">
+      <span id="adminEmail"></span>
+      <a href="index.html" class="adm-link">View site</a>
+      <button class="adm-logout" onclick="logout()">Log out</button>
+    </div>
+  </header>
+
+  <main class="adm-main">
+
+    <div class="stats" id="stats"></div>
+
+    <div class="adm-tabs" id="admTabs">
+      <button class="adm-tab active" data-tab="requests">Service Requests</button>
+      <button class="adm-tab" data-tab="concerns">Concerns</button>
+      <button class="adm-tab" data-tab="announcements">Announcements</button>
+      <button class="adm-tab" data-tab="ordinances">Ordinances &amp; Resolutions</button>
+      <button class="adm-tab" data-tab="editors" id="editorsTab" hidden>Editors</button>
+    </div>
+
+    <!-- REQUESTS -->
+    <section class="panel" id="panel-requests">
+      <div class="toolbar">
+        <input type="search" id="reqSearch" placeholder="Search name or reference...">
+        <select id="reqFilter"></select>
+        <button class="outline-btn" onclick="loadAll()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Reference</th><th>Name</th><th>Service</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+        <tbody id="reqBody"></tbody>
+      </table></div>
+    </section>
+
+    <!-- CONCERNS -->
+    <section class="panel" id="panel-concerns" hidden>
+      <div class="toolbar">
+        <input type="search" id="conSearch" placeholder="Search name or description...">
+        <select id="conFilter"></select>
+        <button class="outline-btn" onclick="loadAll()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>Category</th><th>Description</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+        <tbody id="conBody"></tbody>
+      </table></div>
+    </section>
+
+    <!-- ANNOUNCEMENTS -->
+    <section class="panel" id="panel-announcements" hidden>
+      <div class="toolbar">
+        <button class="primary-btn" onclick="openAnnouncementForm()">+ New Announcement</button>
+        <button class="outline-btn" onclick="loadAll()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Title</th><th>Category</th><th>Visibility</th><th></th></tr></thead>
+        <tbody id="annBody"></tbody>
+      </table></div>
+    </section>
+
+    <!-- ORDINANCES & RESOLUTIONS -->
+    <section class="panel" id="panel-ordinances" hidden>
+      <div class="toolbar">
+        <input type="search" id="ordSearch" placeholder="Search title or number...">
+        <select id="ordFilter">
+          <option value="All">All types</option>
+          <option>Ordinance</option>
+          <option>Resolution</option>
+        </select>
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+        <button class="add-btn" title="Add ordinance / resolution" aria-label="Add ordinance or resolution" onclick="openOrdinanceForm()">+</button>
+      </div>
+      <div class="ord-admin-list" id="ordAdminList"></div>
+    </section>
+
+    <!-- EDITORS (admins only) -->
+    <section class="panel" id="panel-editors" hidden>
+      <div class="toolbar">
+        <input type="email" id="edEmail" placeholder="Email of an existing account, e.g. clerk@barangay.gov">
+        <select id="edRole"><option value="editor">Editor</option><option value="admin">Admin</option></select>
+        <button class="primary-btn" onclick="addEditor()">+ Add</button>
+      </div>
+      <p class="hint"><b>Editors</b> can manage announcements, ordinances &amp; resolutions. <b>Admins</b> can also handle requests/concerns, and manage this list. The person must first have an account (Supabase &rarr; Authentication &rarr; Users &rarr; Add user).</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Email</th><th>Role</th><th>Added</th><th></th></tr></thead>
+        <tbody id="edBody"></tbody>
+      </table></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="close-modal" onclick="closeModal()">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
