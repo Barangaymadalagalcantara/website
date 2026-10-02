@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Barangay Madalag | Barangay360</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- TOP UTILITY BAR -->
+  <div class="topbar">
+    <ul>
+      <li><a href="#announcements">News &amp; Updates</a></li>
+      <li><a href="#services">Freedom of Information</a></li>
+    </ul>
+    <ul class="right">
+      <li><a href="#contact" onclick="openEmergency()">Emergency Hotlines</a></li>
+      <li><a href="#officials">Directory</a></li>
+      <li><a href="#contact">Careers</a></li>
+      <li><a href="https://www.gov.ph" target="_blank" rel="noopener">GOV.PH</a></li>
+    </ul>
+  </div>
+
+  <!-- NAVIGATION -->
+  <header class="navbar">
+    <div class="brand">
+      <img class="brand-seal" src="seal.png" alt="Barangay Madalag Official Seal">
+      <div class="brand-text">
+        <em>Republic of the Philippines</em>
+        <strong>BARANGAY MADALAG</strong>
+        <em>Municipality of Alcantara · Province of Romblon</em>
+      </div>
+    </div>
+
+    <button class="menu-toggle" id="menuToggle">☰</button>
+
+    <nav id="mainNav">
+      <a href="#home">Home</a>
+      <a href="#services">Services</a>
+      <a href="#announcements">Announcements</a>
+      <a href="#ordinances">Ordinances</a>
+      <a href="#events">Events</a>
+      <a href="#officials">Officials</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <button class="admin-btn" onclick="openAdminLogin()">
+      Admin Portal
+    </button>
+  </header>
+
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+
+    <div class="hero-left">
+      <img class="hero-seal" src="seal.png" alt="Barangay Madalag Official Seal">
+    </div>
+
+    <div class="hero-content">
+      <h1>Welcome to<br>Barangay Madalag</h1>
+
+      <div class="hero-buttons">
+        <button class="primary-btn" onclick="scrollToSection('services')">Explore Services</button>
+        <button class="secondary-btn" onclick="openRequestModal()">Request a Service</button>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- QUICK ACTIONS -->
+  <section class="quick-actions">
+
+    <div class="quick-card" onclick="openRequestModal()">
+      <div class="quick-icon">📄</div>
+      <div>
+        <h3>Request a Document</h3>
+        <p>Barangay certificates and clearances</p>
+      </div>
+    </div>
+
+    <div class="quick-card" onclick="openTrackingModal()">
+      <div class="quick-icon">🔎</div>
+      <div>
+        <h3>Track Request</h3>
+        <p>Check your request status</p>
+      </div>
+    </div>
+
+    <div class="quick-card" onclick="openConcernModal()">
+      <div class="quick-icon">📢</div>
+      <div>
+        <h3>Report a Concern</h3>
+        <p>Send a community concern</p>
+      </div>
+    </div>
+
+    <div class="quick-card emergency" onclick="openEmergency()">
+      <div class="quick-icon">🚨</div>
+      <div>
+        <h3>Emergency</h3>
+        <p>Important emergency contacts</p>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ANNOUNCEMENTS -->
+  <section class="section" id="announcements">
+
+    <div class="section-heading">
+      <div>
+        <span class="section-label">LATEST INFORMATION</span>
+        <h2>Barangay Announcements</h2>
+      </div>
+
+      <button class="outline-btn" onclick="showAllAnnouncements()">
+        View All
+      </button>
+    </div>
+
+    <div class="announcement-grid">
+
+      <article class="announcement-card featured">
+        <div class="announcement-date">
+          <strong>05</strong>
+          <span>OCT</span>
+        </div>
+
+        <div>
+          <span class="category">BARANGAY NOTICE</span>
+          <h3>Barangay Assembly Meeting</h3>
+          <p>
+            All residents are invited to attend the upcoming
+            Barangay Assembly Meeting.
+          </p>
+          <small>📍 Barangay Covered Court</small>
+        </div>
+      </article>
+
+      <article class="announcement-card">
+        <div class="announcement-date">
+          <strong>08</strong>
+          <span>OCT</span>
+        </div>
+
+        <div>
+          <span class="category">COMMUNITY</span>
+          <h3>Community Clean-Up Drive</h3>
+          <p>
+            Join our community clean-up activity in designated areas.
+          </p>
+          <small>⏰ 7:00 AM</small>
+        </div>
+      </article>
+
+      <article class="announcement-card">
+        <div class="announcement-date">
+          <strong>12</strong>
+          <span>OCT</span>
+        </div>
+
+        <div>
+          <span class="category">HEALTH</span>
+          <h3>Free Medical Check-Up</h3>
+          <p>
+            Free basic health consultation for barangay residents.
+          </p>
+          <small>📍 Barangay Health Center</small>
+        </div>
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <!-- SERVICES -->
+  <section class="section services-section" id="services">
+
+    <div class="section-heading centered">
+      <span class="section-label">BARANGAY SERVICES</span>
+      <h2>Services at Your Fingertips</h2>
+      <p>
+        Find information about barangay documents, requirements,
+        procedures, and service requests.
+      </p>
+    </div>
+
+    <div class="services-grid">
+
+      <div class="service-card" onclick="openService('Barangay Clearance')">
+        <div class="service-icon">📄</div>
+        <h3>Barangay Clearance</h3>
+        <p>For employment, business, school, and other purposes.</p>
+        <span>View Requirements →</span>
+      </div>
+
+      <div class="service-card" onclick="openService('Certificate of Residency')">
+        <div class="service-icon">🏠</div>
+        <h3>Certificate of Residency</h3>
+        <p>Proof that a resident lives within the barangay.</p>
+        <span>View Requirements →</span>
+      </div>
+
+      <div class="service-card" onclick="openService('Certificate of Indigency')">
+        <div class="service-icon">📋</div>
+        <h3>Certificate of Indigency</h3>
+        <p>Certification for qualified residents.</p>
+        <span>View Requirements →</span>
+      </div>
+
+      <div class="service-card" onclick="openService('Barangay ID')">
+        <div class="service-icon">🪪</div>
+        <h3>Barangay ID</h3>
+        <p>Information about barangay identification.</p>
+        <span>View Requirements →</span>
+      </div>
+
+      <div class="service-card" onclick="openService('Business Certification')">
+        <div class="service-icon">🏪</div>
+        <h3>Business Certification</h3>
+        <p>Barangay requirements for local businesses.</p>
+        <span>View Requirements →</span>
+      </div>
+
+      <div class="service-card" onclick="openService('Other Services')">
+        <div class="service-icon">＋</div>
+        <h3>Other Services</h3>
+        <p>Explore additional barangay services.</p>
+        <span>View Services →</span>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- REQUEST TRACKING -->
+  <section class="tracking-section">
+
+    <div class="tracking-content">
+
+      <span class="section-label">SERVICE REQUEST</span>
+
+      <h2>Track Your Barangay Request</h2>
+
+      <p>
+        Enter your reference number to check the status of
+        your submitted request.
+      </p>
+
+      <div class="tracking-form">
+        <input
+          type="text"
+          id="trackingNumber"
+          placeholder="Example: BRGY-2026-00482"
+        />
+
+        <button class="primary-btn" onclick="trackRequest()">
+          Track Request
+        </button>
+      </div>
+
+      <div id="trackingResult"></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ORDINANCES & RESOLUTIONS -->
+  <section class="section ordinances-section" id="ordinances">
+
+    <div class="section-heading">
+      <div>
+        <span class="section-label">TRANSPARENCY</span>
+        <h2>Ordinances &amp; Resolutions</h2>
+      </div>
+    </div>
+
+    <div class="ord-toolbar">
+      <div class="ord-tabs" id="ordTabs">
+        <button class="ord-tab active" data-type="All">All</button>
+        <button class="ord-tab" data-type="Ordinance">Ordinances</button>
+        <button class="ord-tab" data-type="Resolution">Resolutions</button>
+      </div>
+
+      <div class="ord-filters">
+        <input type="search" id="ordSearch" placeholder="Search title or number...">
+        <select id="ordYear"><option value="All">All Years</option></select>
+      </div>
+    </div>
+
+    <div class="ord-list" id="ordList"></div>
+
+  </section>
+
+
+  <!-- EVENTS -->
+  <section class="section" id="events">
+
+    <div class="section-heading">
+      <div>
+        <span class="section-label">COMMUNITY CALENDAR</span>
+        <h2>Upcoming Activities</h2>
+      </div>
+    </div>
+
+    <div class="events-list">
+
+      <div class="event-item">
+        <div class="event-date">
+          <strong>05</strong>
+          <span>OCT</span>
+        </div>
+
+        <div class="event-info">
+          <h3>Barangay Assembly</h3>
+          <p>📍 Barangay Covered Court</p>
+          <p>⏰ 8:00 AM</p>
+        </div>
+
+        <span class="event-tag">BARANGAY</span>
+      </div>
+
+      <div class="event-item">
+        <div class="event-date">
+          <strong>08</strong>
+          <span>OCT</span>
+        </div>
+
+        <div class="event-info">
+          <h3>Community Clean-Up Drive</h3>
+          <p>📍 Purok 3</p>
+          <p>⏰ 7:00 AM</p>
+        </div>
+
+        <span class="event-tag">COMMUNITY</span>
+      </div>
+
+      <div class="event-item">
+        <div class="event-date">
+          <strong>12</strong>
+          <span>OCT</span>
+        </div>
+
+        <div class="event-info">
+          <h3>Free Medical Mission</h3>
+          <p>📍 Barangay Health Center</p>
+          <p>⏰ 9:00 AM</p>
+        </div>
+
+        <span class="event-tag">HEALTH</span>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- OFFICIALS -->
+  <section class="section officials-section" id="officials">
+
+    <div class="section-heading centered">
+      <span class="section-label">BARANGAY LEADERSHIP</span>
+      <h2>Barangay Officials</h2>
+      <p>Meet the officials serving our community.</p>
+    </div>
+
+    <div class="officials-grid">
+
+      <div class="official-card chief">
+        <div class="official-photo">PB</div>
+        <span>PUNONG BARANGAY</span>
+        <h3>Juan Dela Cruz</h3>
+        <p>Punong Barangay</p>
+      </div>
+
+      <div class="official-card">
+        <div class="official-photo">01</div>
+        <span>BARANGAY KAGAWAD</span>
+        <h3>Maria Santos</h3>
+        <p>Committee on Peace & Order</p>
+      </div>
+
+      <div class="official-card">
+        <div class="official-photo">02</div>
+        <span>BARANGAY KAGAWAD</span>
+        <h3>Pedro Reyes</h3>
+        <p>Committee on Health</p>
+      </div>
+
+      <div class="official-card">
+        <div class="official-photo">03</div>
+        <span>BARANGAY KAGAWAD</span>
+        <h3>Ana Garcia</h3>
+        <p>Committee on Education</p>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- EMERGENCY -->
+  <section class="emergency-section">
+
+    <div>
+      <span class="section-label">EMERGENCY INFORMATION</span>
+      <h2>Need Immediate Assistance?</h2>
+      <p>
+        Keep these important emergency contacts accessible.
+      </p>
+    </div>
+
+    <div class="emergency-contacts">
+
+      <div>
+        <strong>🚓 Police</strong>
+        <span>911</span>
+      </div>
+
+      <div>
+        <strong>🚒 Fire</strong>
+        <span>911</span>
+      </div>
+
+      <div>
+        <strong>🏥 Emergency</strong>
+        <span>911</span>
+      </div>
+
+      <div>
+        <strong>🏛️ Barangay Hall</strong>
+        <span>(000) 000-0000</span>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- FOOTER -->
+  <footer id="contact">
+
+    <div class="footer-main">
+
+      <div class="footer-brand">
+        <div class="brand-logo">B360</div>
+        <h3>Barangay360</h3>
+
+        <p>
+          A digital information and service portal
+          for Barangay Madalag.
+        </p>
+      </div>
+
+      <div>
+        <h4>Quick Links</h4>
+        <a href="#services">Services</a>
+        <a href="#announcements">Announcements</a>
+        <a href="#ordinances">Ordinances &amp; Resolutions</a>
+        <a href="#events">Events</a>
+        <a href="#officials">Officials</a>
+      </div>
+
+      <div>
+        <h4>Barangay Office</h4>
+        <p>Barangay Hall</p>
+        <p>Barangay Madalag</p>
+        <p>Municipality of Alcantara</p>
+        <p>Province of Romblon</p>
+      </div>
+
+      <div>
+        <h4>Contact</h4>
+        <p>📞 (000) 000-0000</p>
+        <p>✉️ barangay@example.com</p>
+        <p>🕐 Mon–Fri, 8:00 AM–5:00 PM</p>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      © 2026 Barangay360 · Barangay Madalag
+    </div>
+
+  </footer>
+
+</div>
+
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+
+  <div class="modal">
+
+    <button class="close-modal" onclick="closeModal()">×</button>
+
+    <div id="modalContent"></div>
+
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
