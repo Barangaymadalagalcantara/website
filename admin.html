@@ -56,6 +56,7 @@
       <button class="adm-tab" data-tab="ordinances">Ordinances &amp; Resolutions</button>
       <button class="adm-tab" data-tab="officials">Officials</button>
       <button class="adm-tab" data-tab="emergency">Emergency Contacts</button>
+      <button class="adm-tab" data-tab="profile">Barangay Profile</button>
       <button class="adm-tab" data-tab="editors" id="editorsTab" hidden>Editors</button>
     </div>
 
@@ -134,6 +135,15 @@
       </div>
       <p class="hint">These appear in the <b>Emergency Information</b> section and the <b>Emergency Hotlines</b> pop-up on the website. When an agency changes its number, click the pencil to update it. Numbers are tap-to-call on phones.</p>
       <div class="ord-admin-list" id="emAdminList"></div>
+    </section>
+
+    <!-- BARANGAY PROFILE -->
+    <section class="panel" id="panel-profile" hidden>
+      <div class="toolbar">
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+      </div>
+      <p class="hint">Fill in the figures for your barangay. Anything left <b>empty is hidden</b> on the website, so nothing looks unfinished. Use <b>aggregate numbers only</b> (counts, never names or personal details of residents). Starter figures come from the Philippine Statistics Authority (PSA); replace them with your Registry of Barangay Inhabitants / CBMS data when you have it.</p>
+      <div id="profileAdmin"></div>
     </section>
 
     <!-- EDITORS (admins only) -->

@@ -900,3 +900,145 @@ document.getElementById("offTabs").addEventListener("click", e => {
 });
 
 loadOfficials();
+
+
+/* =========================
+   BARANGAY PROFILE (DEMOGRAPHICS)
+========================= */
+
+let profileData = PROFILE_SEED;
+
+const fmtNum = n => {
+  const v = Number(n);
+  return Number.isFinite(v) ? v.toLocaleString("en-PH", { maximumFractionDigits: 2 }) : "";
+};
+const hasVal = x => x.value !== null && x.value !== undefined && x.value !== "";
+
+function profNote(rows, sourceOnly) {
+  const r = rows.find(x => x.as_of || x.source) || {};
+  const bits = [(!sourceOnly && r.as_of) ? "As of " + r.as_of : "", r.source || ""].filter(Boolean);
+  return bits.length ? `<p class="prof-note">${esc(bits.join(" \u00b7 "))}</p>` : "";
+}
+
+function populationChartSVG(rows) {
+  const W = 640, H = 270, padL = 16, padR = 16, top = 30, bottom = 38;
+  const max = Math.max(...rows.map(r => Number(r.value))) * 1.12;
+  const slot = (W - padL - padR) / rows.length;
+  const bw = Math.min(54, slot * 0.62);
+  const bars = rows.map((r, i) => {
+    const h = (Number(r.value) / max) * (H - top - bottom);
+    const x = padL + slot * i + (slot - bw) / 2;
+    const y = H - bottom - h;
+    const last = i === rows.length - 1;
+    return `
+      <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" style="fill:${last ? "var(--accent)" : "var(--primary)"}"/>
+      <text x="${(x + bw / 2).toFixed(1)}" y="${(y - 8).toFixed(1)}" text-anchor="middle" style="font:700 12px 'DM Sans',sans-serif;fill:var(--dark)">${esc(fmtNum(r.value))}</text>
+      <text x="${(x + bw / 2).toFixed(1)}" y="${H - 16}" text-anchor="middle" style="font:600 12px 'DM Sans',sans-serif;fill:var(--text)">${esc(r.label)}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Population of Barangay Madalag by census year" class="prof-chart">
+    <line x1="${padL}" y1="${H - bottom}" x2="${W - padR}" y2="${H - bottom}" style="stroke:var(--border);stroke-width:1.5"/>${bars}</svg>`;
+}
+
+function barList(rows) {
+  const total = rows.reduce((s, r) => s + Number(r.value || 0), 0);
+  const max = Math.max(...rows.map(r => Number(r.value || 0)), 1);
+  return `<div class="prof-bars">${rows.map(r => `
+    <div class="prof-bar-row">
+      <span class="pb-label">${esc(r.label)}</span>
+      <span class="pb-track"><span class="pb-fill" style="width:${(Number(r.value) / max * 100).toFixed(1)}%"></span></span>
+      <span class="pb-val">${esc(fmtNum(r.value))}${total ? ` <small>${(Number(r.value) / total * 100).toFixed(1)}%</small>` : ""}</span>
+    </div>`).join("")}</div>`;
+}
+
+function renderProfile() {
+  const box = document.getElementById("profileBody");
+  if (!box) return;
+
+  const by = cat => profileData.filter(x => x.category === cat && hasVal(x)).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  const stats = by("stat"), census = by("census"), age = by("age"), sitio = by("sitio"), live = by("livelihood");
+
+  if (!stats.length && !census.length && !age.length && !sitio.length && !live.length) {
+    box.innerHTML = '<div class="off-empty">The barangay profile will be posted here soon.</div>';
+    return;
+  }
+
+  let html = "";
+
+  if (stats.length) {
+    html += `<div class="prof-stats">${stats.map(s => `
+      <div class="prof-stat">
+        <strong>${esc(fmtNum(s.value))}</strong>
+        <span>${esc(s.label)}${s.unit && !/residents|households|voters/i.test(s.unit) ? ` <em>(${esc(s.unit.replace(/km2/i, "km\u00b2"))})</em>` : ""}</span>
+        ${s.as_of || s.source ? `<small>${esc([s.as_of ? "As of " + s.as_of : "", s.source || ""].filter(Boolean).join(" \u00b7 "))}</small>` : ""}
+      </div>`).join("")}</div>`;
+  }
+
+  const blocks = [];
+
+  if (census.length) {
+    census.sort((a, b) => Number(a.label) - Number(b.label));
+    let trend = "";
+    if (census.length > 1) {
+      const a = census[census.length - 2], b = census[census.length - 1];
+      const pct = (Number(b.value) - Number(a.value)) / Number(a.value) * 100;
+      trend = `<p class="prof-trend">${pct >= 0 ? "Up" : "Down"} <b>${Math.abs(pct).toFixed(1)}%</b> from ${esc(a.label)} (${esc(fmtNum(a.value))}) to ${esc(b.label)} (${esc(fmtNum(b.value))}).</p>`;
+    }
+    blocks.push(`
+      <div class="prof-card wide">
+        <h3>Population Growth</h3>
+        <p class="prof-sub">Residents counted in each national census</p>
+        ${populationChartSVG(census)}
+        ${trend}
+        ${profNote(census, true)}
+      </div>`);
+  }
+
+  if (age.length) {
+    blocks.push(`
+      <div class="prof-card">
+        <h3>Population by Age Group</h3>
+        ${barList(age)}
+        ${profNote(age)}
+      </div>`);
+  }
+
+  if (sitio.length) {
+    const tp = sitio.reduce((s, r) => s + Number(r.value || 0), 0);
+    const th = sitio.reduce((s, r) => s + Number(r.value2 || 0), 0);
+    const showHh = sitio.some(r => r.value2 != null);
+    blocks.push(`
+      <div class="prof-card">
+        <h3>Puroks &amp; Sitios</h3>
+        <table class="prof-table">
+          <thead><tr><th>Name</th><th>Population</th>${showHh ? "<th>Households</th>" : ""}</tr></thead>
+          <tbody>${sitio.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(fmtNum(r.value))}</td>${showHh ? `<td>${r.value2 != null ? esc(fmtNum(r.value2)) : "\u2013"}</td>` : ""}</tr>`).join("")}</tbody>
+          <tfoot><tr><td>Total</td><td>${esc(fmtNum(tp))}</td>${showHh ? `<td>${esc(fmtNum(th))}</td>` : ""}</tr></tfoot>
+        </table>
+        ${profNote(sitio)}
+      </div>`);
+  }
+
+  if (live.length) {
+    blocks.push(`
+      <div class="prof-card">
+        <h3>Main Sources of Livelihood</h3>
+        ${barList(live)}
+        ${profNote(live)}
+      </div>`);
+  }
+
+  if (blocks.length) html += `<div class="prof-grid">${blocks.join("")}</div>`;
+
+  html += `<p class="prof-foot">Figures are aggregate counts only, based on the Philippine Statistics Authority and barangay records. No personal information about individual residents is published.</p>`;
+  box.innerHTML = html;
+}
+
+async function loadProfile() {
+  renderProfile();   // PSA starter figures show immediately
+  if (!sb) return;
+  const { data, error } = await sb.from("profile_items").select("*").eq("is_published", true)
+    .order("category").order("sort_order", { ascending: true });
+  if (!error && data && data.length) { profileData = data; renderProfile(); }
+}
+
+loadProfile();

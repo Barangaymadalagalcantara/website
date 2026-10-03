@@ -9,7 +9,7 @@ const REQ_STATUSES = ["Submitted", "Under Review", "Approved", "Ready for Pickup
 const CON_STATUSES = ["New", "In Progress", "Resolved", "Dismissed"];
 const ANN_CATEGORIES = ["BARANGAY NOTICE", "COMMUNITY", "HEALTH", "PEACE & ORDER", "EDUCATION", "LIVELIHOOD"];
 
-let requests = [], concerns = [], announcements = [], ordinances = [], officials = [], emergency = [], editors = [];
+let requests = [], concerns = [], announcements = [], ordinances = [], officials = [], emergency = [], profile = [], editors = [];
 let myRole = "editor", myId = null;
 const ORD_STATUSES = ["Approved", "Pending", "Repealed", "Amended"];
 
@@ -88,13 +88,14 @@ async function logout() {
 
 /* ---------- DATA ---------- */
 async function loadAll() {
-  const [r, c, a, o, offRes, emRes] = await Promise.all([
+  const [r, c, a, o, offRes, emRes, prRes] = await Promise.all([
     sb.from("service_requests").select("*").order("created_at", { ascending: false }),
     sb.from("concerns").select("*").order("created_at", { ascending: false }),
     sb.from("announcements").select("*").order("event_date", { ascending: false }),
     sb.from("ordinances").select("*").order("date_approved", { ascending: false }),
     sb.from("officials").select("*").order("term_start", { ascending: false }),
-    sb.from("emergency_contacts").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: true })
+    sb.from("emergency_contacts").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+    sb.from("profile_items").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: true })
   ]);
 
   if (r.error || c.error || a.error) {
@@ -108,6 +109,8 @@ async function loadAll() {
   officials = offRes.data || [];
   if (emRes.error) toast("Emergency contacts could not load. Have you run emergency.sql in Supabase?", true);
   emergency = emRes.data || [];
+  if (prRes.error) toast("Barangay profile could not load. Have you run profile.sql in Supabase?", true);
+  profile = prRes.data || [];
   if (myRole === "admin") {
     const e = await sb.rpc("list_editors");
     editors = e.data || [];
@@ -123,6 +126,7 @@ function renderAll() {
   renderOrdinances();
   renderOfficials();
   renderEmergency();
+  renderProfile();
   renderEditors();
   updateTabCounts();
 }
@@ -146,7 +150,7 @@ function updateTabCounts() {
   };
   document.querySelectorAll(".adm-tab").forEach(t => {
     const base = t.dataset.tab;
-    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Officials", emergency: "Emergency Contacts", editors: "Editors" }[base];
+    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Officials", emergency: "Emergency Contacts", profile: "Barangay Profile", editors: "Editors" }[base];
     t.innerHTML = esc(label) + (counts[base] ? `<span class="count">${counts[base]}</span>` : "");
   });
 }
@@ -156,7 +160,7 @@ $("admTabs").addEventListener("click", e => {
   const b = e.target.closest(".adm-tab");
   if (!b) return;
   document.querySelectorAll(".adm-tab").forEach(t => t.classList.toggle("active", t === b));
-  ["requests", "concerns", "announcements", "ordinances", "officials", "emergency", "editors"].forEach(p => ($("panel-" + p).hidden = p !== b.dataset.tab));
+  ["requests", "concerns", "announcements", "ordinances", "officials", "emergency", "profile", "editors"].forEach(p => ($("panel-" + p).hidden = p !== b.dataset.tab));
 });
 
 /* ---------- SERVICE REQUESTS ---------- */
@@ -802,6 +806,131 @@ async function deleteEmergency(id) {
   if (!c) return;
   if (!confirm(`Delete "${c.agency}" from the emergency contacts? This cannot be undone.`)) return;
   const { error } = await sb.from("emergency_contacts").delete().eq("id", id);
+  if (error) return toast("Delete failed.", true);
+  closeModal(); toast("Deleted."); loadAll();
+}
+
+/* ---------- BARANGAY PROFILE (demographics) ---------- */
+const PROFILE_CATS = {
+  stat: {
+    title: "Key figures", help: "Big numbers shown at the top (population, households, voters, land area...). Empty ones stay hidden.",
+    label: "Figure name", value: "Value", unit: true, asof: true, addText: "+ Add figure"
+  },
+  census: {
+    title: "Population history (census years)", help: "One row per census year. Drives the population growth chart.",
+    label: "Year", labelHint: "e.g. 2024", value: "Population", value2: "Households (optional)", asof: true, byYear: true, addText: "+ Add census year"
+  },
+  age: {
+    title: "Population by age group", help: "Replace the 2015 PSA figures with your latest barangay records when available.",
+    label: "Age group", labelHint: "e.g. 5 to 9", value: "Population", asof: true, addText: "+ Add age group"
+  },
+  sitio: {
+    title: "Puroks & Sitios", help: "Add each purok / sitio with its population and households.",
+    label: "Purok / Sitio name", value: "Population", value2: "Households (optional)", asof: true, addText: "+ Add purok / sitio"
+  },
+  livelihood: {
+    title: "Main sources of livelihood", help: "e.g. Farming, Fishing, Small business, Employed. Count of residents or households.",
+    label: "Livelihood", value: "Number of residents / households", asof: true, addText: "+ Add livelihood"
+  }
+};
+
+function renderProfile() {
+  $("profileAdmin").innerHTML = Object.entries(PROFILE_CATS).map(([cat, cfg]) => {
+    let rows = profile.filter(x => x.category === cat);
+    if (cfg.byYear) rows = rows.sort((a, b) => Number(b.label) - Number(a.label));
+    return `
+      <div class="prof-admin-group">
+        <div class="prof-admin-head">
+          <div><h3>${esc(cfg.title)}</h3><small>${esc(cfg.help)}</small></div>
+          <button class="outline-btn" onclick="openProfileForm('${cat}')">${esc(cfg.addText)}</button>
+        </div>
+        <div class="ord-admin-list">
+          ${rows.length ? rows.map(x => `
+            <div class="ord-row">
+              <div class="info">
+                <strong>${x.value == null ? '<span style="color:#b26a00">NOT FILLED IN - hidden on website</span>' : (x.is_published ? "LIVE" : "HIDDEN")}</strong>
+                <h4>${esc(x.label)}${x.value != null ? ` &mdash; ${esc(Number(x.value).toLocaleString("en-PH", { maximumFractionDigits: 2 }))}${x.value2 != null ? " / " + esc(Number(x.value2).toLocaleString("en-PH")) : ""}${x.unit ? " " + esc(x.unit) : ""}` : ""}</h4>
+                <small>${[x.as_of ? "As of " + esc(x.as_of) : "", x.source ? esc(x.source) : ""].filter(Boolean).join(" &middot; ") || "No date / source yet"}</small>
+              </div>
+              <div class="acts">
+                <button class="icon-btn" title="Edit" aria-label="Edit" onclick="openProfileForm('${cat}','${x.id}')">&#9998;</button>
+                <button class="icon-btn del" title="Delete" aria-label="Delete" onclick="deleteProfileItem('${x.id}')">&#128465;</button>
+              </div>
+            </div>`).join("") : '<div style="text-align:center;padding:18px;background:#fff;border:1px dashed var(--border);border-radius:12px;font-size:14px">Nothing here yet.</div>'}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function openProfileForm(cat, id) {
+  const cfg = PROFILE_CATS[cat];
+  const it = id ? profile.find(x => x.id === id) : null;
+  const inCat = profile.filter(x => x.category === cat);
+  const nextOrder = inCat.length ? Math.max(...inCat.map(x => x.sort_order || 0)) + 1 : 1;
+  const v = it || { label: "", value: null, value2: null, unit: "", as_of: "", source: "", sort_order: nextOrder, is_published: true };
+  const num = x => (x === null || x === undefined) ? "" : x;
+
+  openModal(`
+    <span class="section-label">${it ? "EDIT" : "NEW"} &middot; ${esc(cfg.title.toUpperCase())}</span>
+    <h2>${it ? "Edit" : "Add"}</h2>
+    <form id="prForm">
+      <div class="form-group"><label>${esc(cfg.label)}</label>
+        <input id="prLabel" required maxlength="100" ${cfg.byYear ? 'inputmode="numeric" pattern="[0-9]{4}"' : ""} placeholder="${esc(cfg.labelHint || "")}" value="${esc(v.label)}"></div>
+      <div class="row2">
+        <div class="form-group"><label>${esc(cfg.value)}</label>
+          <input id="prValue" type="number" step="any" min="0" placeholder="Leave empty if unknown" value="${esc(num(v.value))}"></div>
+        ${cfg.value2 ? `<div class="form-group"><label>${esc(cfg.value2)}</label>
+          <input id="prValue2" type="number" step="any" min="0" value="${esc(num(v.value2))}"></div>` : "<div></div>"}
+      </div>
+      ${cfg.unit ? `<div class="form-group"><label>Unit (optional)</label>
+        <input id="prUnit" maxlength="30" placeholder="e.g. residents, households, voters, km2" value="${esc(v.unit || "")}"></div>` : ""}
+      <div class="row2">
+        <div class="form-group"><label>As of (date)</label>
+          <input id="prAsOf" maxlength="60" placeholder="e.g. June 30, 2026" value="${esc(v.as_of || "")}"></div>
+        <div class="form-group"><label>Source</label>
+          <input id="prSource" maxlength="120" placeholder="e.g. Barangay records / CBMS / PSA" value="${esc(v.source || "")}"></div>
+      </div>
+      ${cfg.byYear ? "" : `<div class="form-group"><label>Display order (lower shows first)</label>
+        <input id="prOrder" type="number" value="${esc(v.sort_order)}"></div>`}
+      <label class="check"><input id="prPublished" type="checkbox" ${v.is_published ? "checked" : ""}> Published (visible on the website when filled in)</label>
+      <div class="modal-actions">
+        <button class="primary-btn" type="submit" id="prSave">${it ? "Save Changes" : "Add"}</button>
+        ${it ? `<button class="danger-btn" type="button" onclick="deleteProfileItem('${it.id}')">Delete</button>` : ""}
+      </div>
+    </form>
+  `);
+
+  $("prForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = $("prSave");
+    const numOrNull = el => { const t = el ? el.value.trim() : ""; return t === "" ? null : Number(t); };
+    const label = $("prLabel").value.trim();
+    if (cfg.byYear && !/^\d{4}$/.test(label)) return toast("Enter a 4-digit year, e.g. 2024.", true);
+
+    btn.disabled = true; btn.textContent = "Saving...";
+    const payload = {
+      category: cat,
+      label,
+      value: numOrNull($("prValue")),
+      value2: cfg.value2 ? numOrNull($("prValue2")) : null,
+      unit: cfg.unit ? ($("prUnit").value.trim() || null) : null,
+      as_of: $("prAsOf").value.trim() || null,
+      source: $("prSource").value.trim() || null,
+      sort_order: cfg.byYear ? parseInt(label, 10) : (parseInt($("prOrder").value, 10) || 0),
+      is_published: $("prPublished").checked
+    };
+    const { error } = it ? await sb.from("profile_items").update(payload).eq("id", it.id)
+                         : await sb.from("profile_items").insert(payload);
+    if (error) { btn.disabled = false; btn.textContent = it ? "Save Changes" : "Add"; return toast("Save failed.", true); }
+    closeModal(); toast(it ? "Saved." : "Added."); loadAll();
+  });
+}
+
+async function deleteProfileItem(id) {
+  const it = profile.find(x => x.id === id);
+  if (!it) return;
+  if (!confirm(`Delete "${it.label}" from the barangay profile? This cannot be undone.\n\nTip: to just hide a figure, clear its value or untick Published instead.`)) return;
+  const { error } = await sb.from("profile_items").delete().eq("id", id);
   if (error) return toast("Delete failed.", true);
   closeModal(); toast("Deleted."); loadAll();
 }

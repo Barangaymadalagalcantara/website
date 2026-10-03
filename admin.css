@@ -116,3 +116,9 @@ tr.empty td { text-align: center; color: var(--text); padding: 30px; }
 /* EMERGENCY (admin) */
 .em-icon { width: 44px; height: 44px; display: grid; place-items: center; font-size: 24px; background: #fff5f5; border: 1px solid #efdede; border-radius: 10px; flex: 0 0 auto; }
 .em-phone { font-size: 15px !important; font-weight: 800; color: var(--danger) !important; }
+
+/* BARANGAY PROFILE (admin) */
+.prof-admin-group { margin-bottom: 30px; }
+.prof-admin-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.prof-admin-head h3 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 17px; color: var(--primary); }
+.prof-admin-head small { display: block; color: var(--text); font-size: 12px; margin-top: 2px; max-width: 640px; }

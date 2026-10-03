@@ -67,3 +67,25 @@ function barangayStats(now = new Date()) {
     next: NEXT_ELECTION
   };
 }
+
+
+/* =========================================================
+   PROFILE FALLBACK  (shown until profile.sql has been run)
+   PSA figures only - same as the starter rows in profile.sql
+   ========================================================= */
+const PROFILE_SEED = (() => {
+  const psa = "Philippine Statistics Authority";
+  const items = [
+    { category: "stat", label: "Total population", value: 1456, unit: "residents", as_of: "July 1, 2024", source: "PSA 2024 Census of Population (POPCEN)", sort_order: 1 },
+    { category: "stat", label: "Households", value: 319, unit: "households", as_of: "August 1, 2015", source: "PSA 2015 Census of Population (POPCEN)", sort_order: 2 }
+  ];
+  [["1990", 1398, null, "May 1, 1990"], ["1995", 901, null, "September 1, 1995"], ["2000", 1318, null, "May 1, 2000"],
+   ["2007", 1395, null, "August 1, 2007"], ["2010", 1266, null, "May 1, 2010"], ["2015", 1313, 319, "August 1, 2015"],
+   ["2020", 1402, null, "May 1, 2020"], ["2024", 1456, null, "July 1, 2024"]]
+    .forEach(([y, p, h, d]) => items.push({ category: "census", label: y, value: p, value2: h, as_of: d, source: psa, sort_order: +y }));
+  [["Under 1", 25], ["1 to 4", 97], ["5 to 9", 138], ["10 to 14", 169], ["15 to 19", 165], ["20 to 24", 91], ["25 to 29", 62],
+   ["30 to 34", 81], ["35 to 39", 69], ["40 to 44", 79], ["45 to 49", 58], ["50 to 54", 82], ["55 to 59", 62], ["60 to 64", 22],
+   ["65 to 69", 29], ["70 to 74", 37], ["75 to 79", 23], ["80 and over", 24]]
+    .forEach(([l, v], i) => items.push({ category: "age", label: l, value: v, as_of: "August 1, 2015", source: "PSA 2015 Census of Population (POPCEN)", sort_order: i + 1 }));
+  return items;
+})();

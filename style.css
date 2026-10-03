@@ -1114,3 +1114,43 @@ button.official-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24p
 .emergency-contacts a { color: inherit; text-decoration: none; }
 .emergency-contacts a:hover, .modal a[href^="tel:"]:hover { text-decoration: underline; }
 .modal a[href^="tel:"] { color: var(--danger); text-decoration: none; }
+
+
+/* =========================================================
+   BARANGAY PROFILE (demographics)
+   ========================================================= */
+.profile-section { background: var(--white); }
+.prof-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; max-width: 1100px; margin: 0 auto 26px; }
+.prof-stat { background: var(--light); border: 1px solid var(--border); border-radius: 14px; padding: 20px 20px 16px; }
+.prof-stat strong { display: block; font-family: "Plus Jakarta Sans", sans-serif; font-size: 34px; line-height: 1.05; color: var(--primary); }
+.prof-stat span { display: block; margin-top: 6px; font-weight: 600; font-size: 14px; color: var(--dark); }
+.prof-stat span em { font-style: normal; font-weight: 400; color: var(--text); }
+.prof-stat small { display: block; margin-top: 6px; font-size: 11px; color: var(--text); line-height: 1.4; }
+
+.prof-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 1100px; margin: 0 auto; }
+.prof-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px; min-width: 0; }
+.prof-card.wide { grid-column: 1 / -1; }
+.prof-card h3 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 18px; }
+.prof-sub { font-size: 13px; color: var(--text); margin-bottom: 10px; }
+.prof-chart { width: 100%; height: auto; display: block; margin-top: 6px; }
+.prof-trend { margin-top: 8px; font-size: 14px; color: var(--text); }
+.prof-trend b { color: var(--primary); }
+.prof-note { margin-top: 12px; font-size: 11px; color: var(--text); }
+.prof-foot { max-width: 1100px; margin: 22px auto 0; text-align: center; font-size: 12px; color: var(--text); }
+
+.prof-bars { margin-top: 14px; display: grid; gap: 7px; }
+.prof-bar-row { display: grid; grid-template-columns: 92px 1fr 88px; gap: 10px; align-items: center; font-size: 13px; }
+.pb-label { color: var(--text); }
+.pb-track { height: 12px; background: var(--primary-light); border-radius: 99px; overflow: hidden; }
+.pb-fill { display: block; height: 100%; background: var(--primary); border-radius: 99px; }
+.pb-val { text-align: right; font-weight: 700; }
+.pb-val small { font-weight: 400; color: var(--text); margin-left: 4px; }
+
+.prof-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+.prof-table th { text-align: left; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--primary); padding: 8px 6px; border-bottom: 2px solid var(--border); }
+.prof-table td { padding: 9px 6px; border-bottom: 1px solid var(--border); }
+.prof-table th:not(:first-child), .prof-table td:not(:first-child) { text-align: right; }
+.prof-table tfoot td { font-weight: 800; border-bottom: 0; color: var(--primary); }
+
+@media (max-width: 800px) { .prof-grid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .prof-bar-row { grid-template-columns: 74px 1fr 76px; gap: 8px; font-size: 12px; } }
