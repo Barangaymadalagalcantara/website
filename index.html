@@ -17,7 +17,7 @@
     </ul>
     <ul class="right">
       <li><a href="#contact" onclick="openEmergency()">Emergency Hotlines</a></li>
-      <li><a href="#officials">Directory</a></li>
+      <li><a href="#directory">Directory</a></li>
       <li><a href="#contact">Careers</a></li>
       <li><a href="https://www.gov.ph" target="_blank" rel="noopener">GOV.PH</a></li>
     </ul>
@@ -41,8 +41,9 @@
       <a href="#services">Services</a>
       <a href="#announcements">Announcements</a>
       <a href="#ordinances">Ordinances</a>
+      <a href="#transparency">Transparency</a>
       <a href="#events">Events</a>
-      <a href="#profile">Profile</a>
+      <a href="#about">About</a>
       <a href="#officials">Officials</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -302,6 +303,29 @@
   </section>
 
 
+  <!-- TRANSPARENCY -->
+  <section class="section transparency-section" id="transparency">
+
+    <div class="section-heading">
+      <div>
+        <span class="section-label">OPEN GOVERNANCE</span>
+        <h2>Transparency Board</h2>
+        <p>Barangay budget, investment plan and financial reports, open for every resident to read.</p>
+      </div>
+    </div>
+
+    <div class="ord-toolbar">
+      <div class="ord-tabs" id="trTabs"></div>
+      <div class="ord-filters">
+        <select id="trYear"><option value="All">All Years</option></select>
+      </div>
+    </div>
+
+    <div class="ord-list" id="trList"><div class="off-loading">Loading documents...</div></div>
+
+  </section>
+
+
   <!-- EVENTS -->
   <section class="section" id="events">
 
@@ -364,6 +388,36 @@
   </section>
 
 
+  <!-- GALLERY -->
+  <section class="section gallery-section" id="gallery">
+
+    <div class="section-heading">
+      <div>
+        <span class="section-label">COMMUNITY MOMENTS</span>
+        <h2>Photo Gallery</h2>
+        <p>Photos from barangay events and projects.</p>
+      </div>
+    </div>
+
+    <div class="gallery-grid" id="galleryGrid"><div class="off-loading">Loading photos...</div></div>
+
+  </section>
+
+
+  <!-- ABOUT: HISTORY & LOCATION -->
+  <section class="section about-section" id="about">
+
+    <div class="section-heading centered">
+      <span class="section-label">OUR STORY</span>
+      <h2>History &amp; Location</h2>
+      <p>Where Barangay Madalag is, and how it came to be.</p>
+    </div>
+
+    <div id="aboutBody"></div>
+
+  </section>
+
+
   <!-- BARANGAY PROFILE -->
   <section class="section profile-section" id="profile">
 
@@ -405,6 +459,20 @@
   </section>
 
 
+  <!-- DIRECTORY -->
+  <section class="section directory-section" id="directory">
+
+    <div class="section-heading centered">
+      <span class="section-label">COMMUNITY SERVANTS</span>
+      <h2>Barangay Directory</h2>
+      <p>The Lupon, health workers, tanod, SK council and committees who serve Barangay Madalag.</p>
+    </div>
+
+    <div id="directoryBody"><div class="off-loading">Loading directory...</div></div>
+
+  </section>
+
+
   <!-- EMERGENCY -->
   <section class="emergency-section">
 
@@ -441,14 +509,19 @@
         <a href="#services">Services</a>
         <a href="#announcements">Announcements</a>
         <a href="#ordinances">Ordinances &amp; Resolutions</a>
+        <a href="#transparency">Transparency Board</a>
         <a href="#events">Events</a>
+        <a href="#gallery">Photo Gallery</a>
+        <a href="#about">History &amp; Location</a>
         <a href="#profile">Barangay Profile</a>
         <a href="#officials">Officials</a>
+        <a href="#directory">Directory</a>
       </div>
 
       <div>
         <h4>Barangay Office</h4>
         <p>Barangay Hall</p>
+        <p id="ftAddress" hidden></p>
         <p>Barangay Madalag</p>
         <p>Municipality of Alcantara</p>
         <p>Province of Romblon</p>
@@ -456,9 +529,11 @@
 
       <div>
         <h4>Contact</h4>
-        <p>📞 (000) 000-0000</p>
-        <p>✉️ barangay@example.com</p>
-        <p>🕐 Mon–Fri, 8:00 AM–5:00 PM</p>
+        <p id="ftPhone" hidden></p>
+        <p id="ftEmail" hidden></p>
+        <p id="ftHours" hidden></p>
+        <a id="ftFacebook" href="#" target="_blank" rel="noopener" hidden>Facebook page</a>
+        <p id="ftEmpty" class="ft-empty">Contact details will be posted here soon.</p>
       </div>
 
     </div>
@@ -489,5 +564,6 @@
 <script src="config.js"></script>
 <script src="history.js"></script>
 <script src="script.js"></script>
+<script src="site-extra.js"></script>
 </body>
 </html>

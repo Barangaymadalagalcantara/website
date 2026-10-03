@@ -10,7 +10,7 @@ const CON_STATUSES = ["New", "In Progress", "Resolved", "Dismissed"];
 const ANN_CATEGORIES = ["BARANGAY NOTICE", "COMMUNITY", "HEALTH", "PEACE & ORDER", "EDUCATION", "LIVELIHOOD"];
 
 let requests = [], concerns = [], announcements = [], ordinances = [], officials = [], emergency = [], profile = [], editors = [];
-let myRole = "editor", myId = null;
+let myRole = "editor", myId = null, myEmail = "";
 const ORD_STATUSES = ["Approved", "Pending", "Repealed", "Amended"];
 
 function esc(v) {
@@ -52,8 +52,10 @@ async function enter(user) {
   }
   myRole = data.role || "admin";
   myId = user.id;
+  myEmail = user.email || "";
   $("adminEmail").textContent = user.email + " (" + myRole + ")";
   $("editorsTab").hidden = myRole !== "admin";
+  $("activityTab").hidden = myRole !== "admin";
   $("loginView").hidden = true;
   $("dashView").hidden = false;
   loadAll();
@@ -115,6 +117,7 @@ async function loadAll() {
     const e = await sb.rpc("list_editors");
     editors = e.data || [];
   }
+  if (typeof loadExtra === "function") await loadExtra();
   renderAll();
 }
 
@@ -128,6 +131,7 @@ function renderAll() {
   renderEmergency();
   renderProfile();
   renderEditors();
+  if (typeof renderExtra === "function") renderExtra();
   updateTabCounts();
 }
 
@@ -150,7 +154,7 @@ function updateTabCounts() {
   };
   document.querySelectorAll(".adm-tab").forEach(t => {
     const base = t.dataset.tab;
-    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Officials", emergency: "Emergency Contacts", profile: "Barangay Profile", editors: "Editors" }[base];
+    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Officials", emergency: "Emergency Contacts", profile: "Barangay Profile", settings: "Site Settings", directory: "Directory", transparency: "Transparency", gallery: "Gallery", editors: "Editors", activity: "Activity Log" }[base];
     t.innerHTML = esc(label) + (counts[base] ? `<span class="count">${counts[base]}</span>` : "");
   });
 }
@@ -160,7 +164,7 @@ $("admTabs").addEventListener("click", e => {
   const b = e.target.closest(".adm-tab");
   if (!b) return;
   document.querySelectorAll(".adm-tab").forEach(t => t.classList.toggle("active", t === b));
-  ["requests", "concerns", "announcements", "ordinances", "officials", "emergency", "profile", "editors"].forEach(p => ($("panel-" + p).hidden = p !== b.dataset.tab));
+  ["requests", "concerns", "announcements", "ordinances", "officials", "emergency", "profile", "settings", "directory", "transparency", "gallery", "editors", "activity"].forEach(p => ($("panel-" + p).hidden = p !== b.dataset.tab));
 });
 
 /* ---------- SERVICE REQUESTS ---------- */
@@ -212,18 +216,24 @@ function openRequest(id) {
 
     <div class="modal-actions">
       <button class="primary-btn" onclick="saveRequest('${r.id}')">Save Changes</button>
+      ${CERT_TYPES[r.service] && CERT_PRINTABLE_STATUSES.includes(r.status) ? `<button class="outline-btn" onclick="openCertificate('${r.id}')">&#128424; Print certificate</button>` : ""}
       <button class="danger-btn" onclick="deleteRow('service_requests','${r.id}')">Delete</button>
     </div>
   `);
 }
 
 async function saveRequest(id) {
+  const before = requests.find(x => x.id === id);
+  const newStatus = $("rqStatus").value;
   const { error } = await sb.from("service_requests").update({
-    status: $("rqStatus").value,
+    status: newStatus,
     admin_remarks: $("rqRemarks").value.trim() || null
   }).eq("id", id);
   if (error) return toast("Save failed.", true);
-  closeModal(); toast("Request updated."); loadAll();
+  closeModal(); toast("Request updated.");
+  await loadAll();
+  // newly approved certificate request -> open the certificate ready to print
+  if (before && newStatus === "Approved" && before.status !== "Approved" && CERT_TYPES[before.service]) openCertificate(id);
 }
 
 /* ---------- CONCERNS ---------- */

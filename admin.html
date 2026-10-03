@@ -57,7 +57,12 @@
       <button class="adm-tab" data-tab="officials">Officials</button>
       <button class="adm-tab" data-tab="emergency">Emergency Contacts</button>
       <button class="adm-tab" data-tab="profile">Barangay Profile</button>
+      <button class="adm-tab" data-tab="settings">Site Settings</button>
+      <button class="adm-tab" data-tab="directory">Directory</button>
+      <button class="adm-tab" data-tab="transparency">Transparency</button>
+      <button class="adm-tab" data-tab="gallery">Gallery</button>
       <button class="adm-tab" data-tab="editors" id="editorsTab" hidden>Editors</button>
+      <button class="adm-tab" data-tab="activity" id="activityTab" hidden>Activity Log</button>
     </div>
 
     <!-- REQUESTS -->
@@ -66,6 +71,7 @@
         <input type="search" id="reqSearch" placeholder="Search name or reference...">
         <select id="reqFilter"></select>
         <button class="outline-btn" onclick="loadAll()">↻ Refresh</button>
+        <button class="outline-btn" onclick="exportRequestsCSV()" title="Download every request as a spreadsheet backup">⬇ Export CSV</button>
       </div>
       <div class="table-wrap"><table>
         <thead><tr><th>Reference</th><th>Name</th><th>Service</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
@@ -79,6 +85,7 @@
         <input type="search" id="conSearch" placeholder="Search name or description...">
         <select id="conFilter"></select>
         <button class="outline-btn" onclick="loadAll()">↻ Refresh</button>
+        <button class="outline-btn" onclick="exportConcernsCSV()" title="Download every concern as a spreadsheet backup">⬇ Export CSV</button>
       </div>
       <div class="table-wrap"><table>
         <thead><tr><th>Name</th><th>Category</th><th>Description</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
@@ -146,6 +153,44 @@
       <div id="profileAdmin"></div>
     </section>
 
+    <!-- SITE SETTINGS -->
+    <section class="panel" id="panel-settings" hidden>
+      <p class="hint">One place for the Barangay Hall's contact details, the location map and the About text. Changes appear on the website footer, the Emergency list and the <b>History &amp; Location</b> section right after you save.</p>
+      <div id="settingsAdmin"></div>
+    </section>
+
+    <!-- DIRECTORY -->
+    <section class="panel" id="panel-directory" hidden>
+      <div class="toolbar">
+        <input type="search" id="dirSearch" placeholder="Search name, group or role...">
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+        <button class="add-btn" title="Add member" aria-label="Add member" onclick="openDirectoryForm()">+</button>
+      </div>
+      <p class="hint">Lupon, BHWs, tanod, SK council, nutrition scholars and committee members. They appear in the <b>Barangay Directory</b> on the website, grouped and shown in picture frames. The Punong Barangay, Kagawads, Secretary and Treasurer stay in the <b>Officials</b> tab.</p>
+      <div id="dirAdminList"></div>
+    </section>
+
+    <!-- TRANSPARENCY -->
+    <section class="panel" id="panel-transparency" hidden>
+      <div class="toolbar">
+        <input type="search" id="trSearch" placeholder="Search title, category or year...">
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+        <button class="add-btn" title="Upload document" aria-label="Upload document" onclick="openTransparencyForm()">+</button>
+      </div>
+      <p class="hint">Annual budget, Annual Investment Plan, financial reports and development plans, as PDFs. They appear in the <b>Transparency</b> section of the website.</p>
+      <div class="ord-admin-list" id="trAdminList"></div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="panel" id="panel-gallery" hidden>
+      <div class="toolbar">
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+        <button class="add-btn" title="New album" aria-label="New album" onclick="openAlbumForm()">+</button>
+      </div>
+      <p class="hint">Create an album for each event or project, then add photos. Photos are shrunk automatically before upload. Please only post photos of people who are comfortable being shown, and take extra care with photos of children.</p>
+      <div class="ord-admin-list" id="galAdminList"></div>
+    </section>
+
     <!-- EDITORS (admins only) -->
     <section class="panel" id="panel-editors" hidden>
       <div class="toolbar">
@@ -157,6 +202,20 @@
       <div class="table-wrap"><table>
         <thead><tr><th>Email</th><th>Role</th><th>Added</th><th></th></tr></thead>
         <tbody id="edBody"></tbody>
+      </table></div>
+    </section>
+
+    <!-- ACTIVITY LOG (admins only) -->
+    <section class="panel" id="panel-activity" hidden>
+      <div class="toolbar">
+        <input type="search" id="actSearch" placeholder="Search person, action or item...">
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+        <button class="outline-btn" onclick="exportActivityCSV()">⬇ Export CSV</button>
+      </div>
+      <p class="hint">A record of who added, edited or deleted what. It shows the latest 300 entries and cannot be edited from this portal.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Area</th><th>Item</th></tr></thead>
+        <tbody id="actBody"></tbody>
       </table></div>
     </section>
 
@@ -176,5 +235,6 @@
 <script src="config.js"></script>
 <script src="history.js"></script>
 <script src="admin.js"></script>
+<script src="admin-extra.js"></script>
 </body>
 </html>
