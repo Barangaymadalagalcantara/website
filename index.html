@@ -369,39 +369,22 @@
     <div class="section-heading centered">
       <span class="section-label">BARANGAY LEADERSHIP</span>
       <h2>Barangay Officials</h2>
-      <p>Meet the officials serving our community.</p>
+      <p>Meet the officials serving our community, and honor those who served before them.</p>
     </div>
 
-    <div class="officials-grid">
+    <div class="off-tabs" id="offTabs">
+      <button class="off-tab active" data-view="current">Current Officials</button>
+      <button class="off-tab" data-view="timeline">Timeline of Past Officials</button>
+    </div>
 
-      <div class="official-card chief">
-        <div class="official-photo">PB</div>
-        <span>PUNONG BARANGAY</span>
-        <h3>Juan Dela Cruz</h3>
-        <p>Punong Barangay</p>
-      </div>
+    <div id="offCurrent">
+      <div class="off-loading">Loading officials...</div>
+    </div>
 
-      <div class="official-card">
-        <div class="official-photo">01</div>
-        <span>BARANGAY KAGAWAD</span>
-        <h3>Maria Santos</h3>
-        <p>Committee on Peace & Order</p>
-      </div>
-
-      <div class="official-card">
-        <div class="official-photo">02</div>
-        <span>BARANGAY KAGAWAD</span>
-        <h3>Pedro Reyes</h3>
-        <p>Committee on Health</p>
-      </div>
-
-      <div class="official-card">
-        <div class="official-photo">03</div>
-        <span>BARANGAY KAGAWAD</span>
-        <h3>Ana Garcia</h3>
-        <p>Committee on Education</p>
-      </div>
-
+    <div id="offTimeline" hidden>
+      <div class="off-stats" id="offStats"></div>
+      <div class="off-history" id="offHistory"></div>
+      <div class="timeline" id="timelineList"></div>
     </div>
 
   </section>
@@ -510,6 +493,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
+<script src="history.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

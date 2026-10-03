@@ -102,3 +102,13 @@ tr.empty td { text-align: center; color: var(--text); padding: 30px; }
 .ord-type-badge { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: #fbeedd; color: #4e2c1a; }
 .ord-type-badge.res { background: #e8f4e2; color: #2f6b25; }
 @media (max-width: 700px) { .ord-row { flex-wrap: wrap; } }
+
+/* OFFICIALS (admin) */
+.off-group-title { display: flex; align-items: center; gap: 10px; margin: 22px 0 10px; font-family: "Plus Jakarta Sans", sans-serif; font-size: 16px; color: var(--primary); }
+.off-group-title:first-child { margin-top: 0; }
+.ord-row .photo-frame { margin: 0; flex: 0 0 auto; }
+.off-form-top { display: grid; grid-template-columns: 190px 1fr; gap: 22px; margin-bottom: 8px; }
+.off-photo-col { text-align: center; }
+.off-photo-col .photo-frame { margin-bottom: 12px; }
+.off-file-btn { display: inline-block; cursor: pointer; padding: 8px 14px; font-size: 13px; }
+@media (max-width: 600px) { .off-form-top { grid-template-columns: 1fr; } }

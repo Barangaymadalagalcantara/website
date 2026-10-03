@@ -671,3 +671,218 @@ async function loadOrdinances() {
   populateOrdYears();
   renderOrdinances();
 }
+
+
+/* =========================
+   OFFICIALS + TIMELINE
+========================= */
+
+let officialsData = [];
+let officialsLoaded = false;
+
+const offPhotoUrl = p => (p && sb) ? sb.storage.from("officials").getPublicUrl(p).data.publicUrl : "";
+
+function offInitials(name) {
+  const parts = String(name || "").replace(/\b(hon|kgwd|pb)\.?\b/gi, "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
+}
+
+function offOrdinal(n) {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+/* Picture frame: photo (or initials) inside an ornamental frame */
+function photoFrame(o, size) {
+  const url = offPhotoUrl(o.photo_path);
+  const inner = url
+    ? `<img src="${esc(url)}" alt="${esc(o.full_name)}" loading="lazy">`
+    : `<span class="pf-initials">${esc(offInitials(o.full_name))}</span>`;
+  return `<div class="photo-frame ${size || ""}"><div class="pf-inner">${inner}</div></div>`;
+}
+
+function termText(start, end) {
+  return `${start} \u2013 ${end ? end : "Present"}`;
+}
+
+function officialCard(o, extraClass) {
+  return `
+    <button class="official-card ${extraClass || ""}" onclick="openOfficial('${esc(o.id)}')">
+      ${photoFrame(o, extraClass === "chief" ? "lg" : "")}
+      <span>${esc(String(o.position).toUpperCase())}</span>
+      <h3>${esc(o.full_name)}</h3>
+      <p>${esc(o.committee || "")}</p>
+    </button>`;
+}
+
+function openOfficial(id) {
+  const o = officialsData.find(x => x.id === id);
+  if (!o) return;
+  openModal(`
+    <div class="off-modal">
+      ${photoFrame(o, "xl")}
+      <span class="section-label">${esc(String(o.position).toUpperCase())}</span>
+      <h2>${esc(o.full_name)}</h2>
+      ${o.committee ? `<p>${esc(o.committee)}</p>` : ""}
+      <p class="off-modal-term">Term: ${esc(termText(o.term_start, o.term_end))}</p>
+    </div>`);
+}
+
+function sortOfficials(list) {
+  return [...list].sort((a, b) =>
+    positionRank(a.position) - positionRank(b.position) ||
+    (a.sort_order - b.sort_order) ||
+    a.full_name.localeCompare(b.full_name));
+}
+
+/* ---------- CURRENT OFFICIALS ---------- */
+function renderCurrentOfficials() {
+  const box = document.getElementById("offCurrent");
+  const current = sortOfficials(officialsData.filter(o => o.term_end == null));
+
+  if (!current.length) {
+    box.innerHTML = '<div class="off-empty">The list of current officials will be posted here soon.</div>';
+    return;
+  }
+
+  const chiefs = current.filter(o => o.position === "Punong Barangay");
+  const rest = current.filter(o => o.position !== "Punong Barangay");
+  const start = Math.max(...current.map(o => o.term_start));
+
+  box.innerHTML = `
+    <p class="off-termline">Term ${esc(start)} \u2013 Present</p>
+    ${chiefs.length ? `<div class="officials-chief-row">${chiefs.map(o => officialCard(o, "chief")).join("")}</div>` : ""}
+    ${rest.length ? `<div class="officials-grid">${rest.map(o => officialCard(o)).join("")}</div>` : ""}`;
+}
+
+/* ---------- TIMELINE ---------- */
+function buildTimelineItems() {
+  // group officials by the year their term started
+  const groups = new Map();
+  officialsData.forEach(o => {
+    if (!groups.has(o.term_start)) groups.set(o.term_start, []);
+    groups.get(o.term_start).push(o);
+  });
+  // make sure every known election has a node, even with no records yet
+  BARANGAY_ELECTIONS.forEach(e => { if (!groups.has(e.year)) groups.set(e.year, []); });
+
+  const items = [];
+  [...groups.keys()].forEach(start => {
+    const members = groups.get(start);
+    const election = BARANGAY_ELECTIONS.find(e => e.year === start);
+    const idx = BARANGAY_ELECTIONS.findIndex(e => e.year === start);
+    const serving = members.some(m => m.term_end == null) ||
+      (!members.length && election && start === BARANGAY_ELECTIONS[BARANGAY_ELECTIONS.length - 1].year);
+    const ends = members.map(m => m.term_end).filter(Boolean);
+    const nextElection = idx >= 0 ? BARANGAY_ELECTIONS[idx + 1] : null;
+    const end = serving ? null : (ends.length ? Math.max(...ends) : (nextElection ? nextElection.year : null));
+    items.push({ kind: "term", year: start, end, serving, members: sortOfficials(members), election, number: idx >= 0 ? idx + 1 : null });
+  });
+
+  MADALAG_MILESTONES.forEach(m => items.push({ kind: "milestone", year: m.year, m }));
+  items.push({ kind: "upcoming", year: NEXT_ELECTION.year });
+
+  // newest first; milestones sit just after the term that started in the same year
+  const order = { upcoming: 0, term: 1, milestone: 2 };
+  return items.sort((a, b) => b.year - a.year || order[a.kind] - order[b.kind]);
+}
+
+function timelineTermHTML(t) {
+  const chief = t.members.filter(m => m.position === "Punong Barangay");
+  const others = t.members.filter(m => m.position !== "Punong Barangay");
+  const sub = t.election
+    ? `${t.number ? offOrdinal(t.number) + " barangay election \u00b7 " : ""}Elected ${esc(t.election.date)}`
+    : "";
+
+  let body;
+  if (!t.members.length) {
+    body = '<p class="tl-empty">Records for this term are still being gathered. If you or your family served, please tell the Barangay Hall so we can honor you here.</p>';
+  } else {
+    body = `
+      ${chief.length ? `<div class="tl-chiefs">${chief.map(m => `
+        <button class="tl-person chief" onclick="openOfficial('${esc(m.id)}')">
+          ${photoFrame(m, "md")}
+          <span>${esc(m.position)}</span><strong>${esc(m.full_name)}</strong>
+        </button>`).join("")}</div>` : ""}
+      ${others.length ? `<div class="tl-people">${others.map(m => `
+        <button class="tl-person" onclick="openOfficial('${esc(m.id)}')">
+          ${photoFrame(m, "sm")}
+          <strong>${esc(m.full_name)}</strong>
+          <span>${esc(m.position === "Barangay Kagawad" ? (m.committee || "Kagawad") : m.position)}</span>
+        </button>`).join("")}</div>` : ""}`;
+  }
+
+  return `
+    <div class="tl-item ${t.serving ? "current" : ""}">
+      <div class="tl-year">${esc(t.year)}</div>
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-head">
+          <h3>${esc(termText(t.year, t.end))}${t.serving ? ' <em class="tl-now">Serving now</em>' : ""}</h3>
+          ${sub ? `<small>${sub}</small>` : ""}
+          ${t.election && t.election.note ? `<small class="tl-note">${esc(t.election.note)}</small>` : ""}
+        </div>
+        ${body}
+      </div>
+    </div>`;
+}
+
+function renderTimeline() {
+  const st = barangayStats();
+
+  document.getElementById("offStats").innerHTML = `
+    <div><strong>${st.yearsAsBarangay}</strong><span>years as a barangay<br>(since 1974)</span></div>
+    <div><strong>${st.electionsHeld}</strong><span>barangay elections held<br>since 1982</span></div>
+    <div><strong>${st.termsCompleted}</strong><span>terms completed<br>+ the ${offOrdinal(st.electionsHeld)} term now serving</span></div>
+    <div><strong>${esc(st.next.date.replace(/, \d{4}$/, ""))}</strong><span>next election<br>${esc(st.next.year)}</span></div>`;
+
+  document.getElementById("offHistory").innerHTML = `
+    <p>Madalag was one of the eight barrios of Looc that formed the Municipality of Alcantara on
+    <b>March 21, 1961</b> (Executive Order No. 427). When Presidential Decree No. 557 turned all barrios
+    into barangays on <b>September 21, 1974</b>, Madalag became a barangay. Since the first nationwide
+    barangay election in <b>1982</b>, ${st.electionsHeld} elections have been held.</p>`;
+
+  const items = buildTimelineItems();
+  document.getElementById("timelineList").innerHTML = items.map(it => {
+    if (it.kind === "term") return timelineTermHTML(it);
+    if (it.kind === "upcoming") return `
+      <div class="tl-item upcoming">
+        <div class="tl-year">${esc(it.year)}</div><div class="tl-dot"></div>
+        <div class="tl-card"><div class="tl-head">
+          <h3>Next barangay election</h3><small>${esc(NEXT_ELECTION.date)} \u00b7 ${esc(NEXT_ELECTION.note)}</small>
+        </div></div>
+      </div>`;
+    return `
+      <div class="tl-item milestone">
+        <div class="tl-year">${esc(it.year)}</div><div class="tl-dot"></div>
+        <div class="tl-card"><div class="tl-head">
+          <h3>${esc(it.m.title)}</h3><small>${esc(it.m.date)}</small></div>
+          <p>${esc(it.m.text)}</p>
+          ${it.m.note ? `<p class="tl-note">${esc(it.m.note)}</p>` : ""}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+/* ---------- LOAD + TABS ---------- */
+async function loadOfficials() {
+  if (sb) {
+    const { data, error } = await sb.from("officials").select("*")
+      .eq("is_published", true).order("term_start", { ascending: false });
+    if (!error && data) officialsData = data;
+  }
+  officialsLoaded = true;
+  renderCurrentOfficials();
+  renderTimeline();
+}
+
+document.getElementById("offTabs").addEventListener("click", e => {
+  const b = e.target.closest(".off-tab");
+  if (!b) return;
+  document.querySelectorAll(".off-tab").forEach(t => t.classList.toggle("active", t === b));
+  document.getElementById("offCurrent").hidden = b.dataset.view !== "current";
+  document.getElementById("offTimeline").hidden = b.dataset.view !== "timeline";
+});
+
+loadOfficials();

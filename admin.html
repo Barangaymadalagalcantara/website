@@ -54,6 +54,7 @@
       <button class="adm-tab" data-tab="concerns">Concerns</button>
       <button class="adm-tab" data-tab="announcements">Announcements</button>
       <button class="adm-tab" data-tab="ordinances">Ordinances &amp; Resolutions</button>
+      <button class="adm-tab" data-tab="officials">Officials</button>
       <button class="adm-tab" data-tab="editors" id="editorsTab" hidden>Editors</button>
     </div>
 
@@ -110,6 +111,19 @@
       <div class="ord-admin-list" id="ordAdminList"></div>
     </section>
 
+    <!-- OFFICIALS -->
+    <section class="panel" id="panel-officials" hidden>
+      <div class="toolbar">
+        <input type="search" id="offSearch" placeholder="Search name or position...">
+        <select id="offFilter"></select>
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+        <button class="outline-btn" onclick="openCloseTerm()" title="Move all currently serving officials to the past-officials timeline">Close current term</button>
+        <button class="add-btn" title="Add official" aria-label="Add official" onclick="openOfficialForm()">+</button>
+      </div>
+      <p class="hint">Officials with no end year are shown as <b>current</b> on the website. Past terms appear automatically in the <b>Timeline of Past Officials</b>. Photos are shown in a gold picture frame (portrait 4:5, cropped automatically).</p>
+      <div id="offAdminList"></div>
+    </section>
+
     <!-- EDITORS (admins only) -->
     <section class="panel" id="panel-editors" hidden>
       <div class="toolbar">
@@ -117,7 +131,7 @@
         <select id="edRole"><option value="editor">Editor</option><option value="admin">Admin</option></select>
         <button class="primary-btn" onclick="addEditor()">+ Add</button>
       </div>
-      <p class="hint"><b>Editors</b> can manage announcements, ordinances &amp; resolutions. <b>Admins</b> can also handle requests/concerns, and manage this list. The person must first have an account (Supabase &rarr; Authentication &rarr; Users &rarr; Add user).</p>
+      <p class="hint"><b>Editors</b> can manage announcements, ordinances &amp; resolutions, and barangay officials. <b>Admins</b> can also handle requests/concerns, and manage this list. The person must first have an account (Supabase &rarr; Authentication &rarr; Users &rarr; Add user).</p>
       <div class="table-wrap"><table>
         <thead><tr><th>Email</th><th>Role</th><th>Added</th><th></th></tr></thead>
         <tbody id="edBody"></tbody>
@@ -138,6 +152,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
+<script src="history.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>
