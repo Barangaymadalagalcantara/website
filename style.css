@@ -1108,3 +1108,9 @@ button.official-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24p
   .tl-dot { grid-column: 1; grid-row: 1 / span 2; margin: 5px auto 0; }
   .tl-card { grid-column: 2; grid-row: 2; }
 }
+
+
+/* Emergency contacts: tap-to-call numbers */
+.emergency-contacts a { color: inherit; text-decoration: none; }
+.emergency-contacts a:hover, .modal a[href^="tel:"]:hover { text-decoration: underline; }
+.modal a[href^="tel:"] { color: var(--danger); text-decoration: none; }

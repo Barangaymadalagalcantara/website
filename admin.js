@@ -9,7 +9,7 @@ const REQ_STATUSES = ["Submitted", "Under Review", "Approved", "Ready for Pickup
 const CON_STATUSES = ["New", "In Progress", "Resolved", "Dismissed"];
 const ANN_CATEGORIES = ["BARANGAY NOTICE", "COMMUNITY", "HEALTH", "PEACE & ORDER", "EDUCATION", "LIVELIHOOD"];
 
-let requests = [], concerns = [], announcements = [], ordinances = [], officials = [], editors = [];
+let requests = [], concerns = [], announcements = [], ordinances = [], officials = [], emergency = [], editors = [];
 let myRole = "editor", myId = null;
 const ORD_STATUSES = ["Approved", "Pending", "Repealed", "Amended"];
 
@@ -88,12 +88,13 @@ async function logout() {
 
 /* ---------- DATA ---------- */
 async function loadAll() {
-  const [r, c, a, o, offRes] = await Promise.all([
+  const [r, c, a, o, offRes, emRes] = await Promise.all([
     sb.from("service_requests").select("*").order("created_at", { ascending: false }),
     sb.from("concerns").select("*").order("created_at", { ascending: false }),
     sb.from("announcements").select("*").order("event_date", { ascending: false }),
     sb.from("ordinances").select("*").order("date_approved", { ascending: false }),
-    sb.from("officials").select("*").order("term_start", { ascending: false })
+    sb.from("officials").select("*").order("term_start", { ascending: false }),
+    sb.from("emergency_contacts").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: true })
   ]);
 
   if (r.error || c.error || a.error) {
@@ -105,6 +106,8 @@ async function loadAll() {
   ordinances = o.data || [];
   if (offRes.error) toast("Officials could not load. Have you run officials.sql in Supabase?", true);
   officials = offRes.data || [];
+  if (emRes.error) toast("Emergency contacts could not load. Have you run emergency.sql in Supabase?", true);
+  emergency = emRes.data || [];
   if (myRole === "admin") {
     const e = await sb.rpc("list_editors");
     editors = e.data || [];
@@ -119,6 +122,7 @@ function renderAll() {
   renderAnnouncements();
   renderOrdinances();
   renderOfficials();
+  renderEmergency();
   renderEditors();
   updateTabCounts();
 }
@@ -142,7 +146,7 @@ function updateTabCounts() {
   };
   document.querySelectorAll(".adm-tab").forEach(t => {
     const base = t.dataset.tab;
-    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Officials", editors: "Editors" }[base];
+    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Officials", emergency: "Emergency Contacts", editors: "Editors" }[base];
     t.innerHTML = esc(label) + (counts[base] ? `<span class="count">${counts[base]}</span>` : "");
   });
 }
@@ -152,7 +156,7 @@ $("admTabs").addEventListener("click", e => {
   const b = e.target.closest(".adm-tab");
   if (!b) return;
   document.querySelectorAll(".adm-tab").forEach(t => t.classList.toggle("active", t === b));
-  ["requests", "concerns", "announcements", "ordinances", "officials", "editors"].forEach(p => ($("panel-" + p).hidden = p !== b.dataset.tab));
+  ["requests", "concerns", "announcements", "ordinances", "officials", "emergency", "editors"].forEach(p => ($("panel-" + p).hidden = p !== b.dataset.tab));
 });
 
 /* ---------- SERVICE REQUESTS ---------- */
@@ -723,6 +727,83 @@ function openCloseTerm() {
     if (error) return toast("Could not close the term.", true);
     closeModal(); toast("Term closed. Past officials are now in the timeline."); loadAll();
   });
+}
+
+/* ---------- EMERGENCY CONTACTS ---------- */
+$("emSearch").addEventListener("input", renderEmergency);
+
+function renderEmergency() {
+  const q = $("emSearch").value.trim().toLowerCase();
+  const rows = emergency.filter(c => (c.agency + " " + c.phone).toLowerCase().includes(q));
+
+  $("emAdminList").innerHTML = rows.length ? rows.map(c => `
+    <div class="ord-row">
+      <span class="em-icon">${esc(c.icon || "\u260E\uFE0F")}</span>
+      <div class="info">
+        <strong>${c.is_published ? "LIVE" : "HIDDEN"}</strong>
+        <h4>${esc(c.agency)}</h4>
+        <small class="em-phone">${esc(c.phone)}</small>
+      </div>
+      <div class="acts">
+        <button class="icon-btn" title="Edit" aria-label="Edit" onclick="openEmergencyForm('${c.id}')">&#9998;</button>
+        <button class="icon-btn del" title="Delete" aria-label="Delete" onclick="deleteEmergency('${c.id}')">&#128465;</button>
+      </div>
+    </div>`).join("")
+    : '<div style="text-align:center;padding:30px;background:#fff;border:1px dashed var(--border);border-radius:12px">No emergency contacts yet. Click the + button to add an agency.</div>';
+}
+
+function openEmergencyForm(id) {
+  const c = id ? emergency.find(x => x.id === id) : null;
+  const nextOrder = emergency.length ? Math.max(...emergency.map(x => x.sort_order || 0)) + 1 : 1;
+  const v = c || { agency: "", phone: "", icon: "", sort_order: nextOrder, is_published: true };
+
+  openModal(`
+    <span class="section-label">${c ? "EDIT" : "NEW"} CONTACT</span>
+    <h2>${c ? "Edit Agency" : "Add Agency"}</h2>
+    <form id="emForm">
+      <div class="form-group"><label>Agency / office name</label>
+        <input id="emAgency" required maxlength="100" placeholder="e.g. BFP Alcantara, Rural Health Unit" value="${esc(v.agency)}"></div>
+      <div class="form-group"><label>Contact number</label>
+        <input id="emPhone" required maxlength="60" inputmode="tel" placeholder="e.g. 911 or 0917 123 4567 or (042) 123-4567" value="${esc(v.phone)}"></div>
+      <div class="row2">
+        <div class="form-group"><label>Icon (one emoji, optional)</label>
+          <input id="emIcon" maxlength="8" placeholder="e.g. 🚓 🚒 🏥 🌊" value="${esc(v.icon || "")}"></div>
+        <div class="form-group"><label>Display order (lower shows first)</label>
+          <input id="emOrder" type="number" value="${esc(v.sort_order)}"></div>
+      </div>
+      <label class="check"><input id="emPublished" type="checkbox" ${v.is_published ? "checked" : ""}> Published (visible on the website)</label>
+      <div class="modal-actions">
+        <button class="primary-btn" type="submit" id="emSave">${c ? "Save Changes" : "Add Agency"}</button>
+        ${c ? `<button class="danger-btn" type="button" onclick="deleteEmergency('${c.id}')">Delete</button>` : ""}
+      </div>
+    </form>
+  `);
+
+  $("emForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = $("emSave");
+    btn.disabled = true; btn.textContent = "Saving...";
+    const payload = {
+      agency: $("emAgency").value.trim(),
+      phone: $("emPhone").value.trim(),
+      icon: $("emIcon").value.trim() || null,
+      sort_order: parseInt($("emOrder").value, 10) || 0,
+      is_published: $("emPublished").checked
+    };
+    const { error } = c ? await sb.from("emergency_contacts").update(payload).eq("id", c.id)
+                        : await sb.from("emergency_contacts").insert(payload);
+    if (error) { btn.disabled = false; btn.textContent = c ? "Save Changes" : "Add Agency"; return toast("Save failed.", true); }
+    closeModal(); toast(c ? "Contact updated." : "Agency added."); loadAll();
+  });
+}
+
+async function deleteEmergency(id) {
+  const c = emergency.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Delete "${c.agency}" from the emergency contacts? This cannot be undone.`)) return;
+  const { error } = await sb.from("emergency_contacts").delete().eq("id", id);
+  if (error) return toast("Delete failed.", true);
+  closeModal(); toast("Deleted."); loadAll();
 }
 
 /* ---------- EDITORS (admins only) ---------- */

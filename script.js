@@ -432,45 +432,59 @@ function openConcernModal() {
 
 // EMERGENCY
 
+/* EMERGENCY CONTACTS (editable from the admin portal) */
+
+let emergencyData = [
+  { agency: "Police", phone: "911", icon: "\u{1F693}" },
+  { agency: "Fire", phone: "911", icon: "\u{1F692}" },
+  { agency: "Medical Emergency", phone: "911", icon: "\u{1F3E5}" },
+  { agency: "Barangay Hall", phone: "(000) 000-0000", icon: "\u{1F3DB}\uFE0F" }
+];
+
+const telHref = n => "tel:" + String(n).replace(/[^0-9+*#,]/g, "");
+
+function emergencyNumber(c) {
+  return `<a href="${esc(telHref(c.phone))}">${esc(c.phone)}</a>`;
+}
+
+function renderEmergency() {
+  const box = document.getElementById("emergencyList");
+  if (!box) return;
+  box.innerHTML = emergencyData.map(c => `
+    <div>
+      <strong>${esc((c.icon ? c.icon + " " : "") + c.agency)}</strong>
+      <span>${emergencyNumber(c)}</span>
+    </div>`).join("");
+}
+
+async function loadEmergency() {
+  if (sb) {
+    const { data, error } = await sb.from("emergency_contacts").select("*")
+      .eq("is_published", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (!error && data && data.length) emergencyData = data;
+  }
+  renderEmergency();
+}
+
 function openEmergency() {
-
   openModal(`
-    <span class="section-label">
-      EMERGENCY CONTACTS
-    </span>
-
+    <span class="section-label">EMERGENCY CONTACTS</span>
     <h2>Emergency Assistance</h2>
-
-    <p>
-      For immediate emergencies, contact the
-      appropriate emergency service.
-    </p>
-
+    <p>For immediate emergencies, contact the appropriate emergency service.</p>
     <div style="margin-top:20px;">
-
-      <div style="padding:15px;border-bottom:1px solid #eee;">
-        🚓 <strong>Police</strong>
-        <strong style="float:right;">911</strong>
-      </div>
-
-      <div style="padding:15px;border-bottom:1px solid #eee;">
-        🚒 <strong>Fire</strong>
-        <strong style="float:right;">911</strong>
-      </div>
-
-      <div style="padding:15px;border-bottom:1px solid #eee;">
-        🏥 <strong>Medical Emergency</strong>
-        <strong style="float:right;">911</strong>
-      </div>
-
-      <div style="padding:15px;">
-        🏛️ <strong>Barangay Hall</strong>
-        <strong style="float:right;">(000) 000-0000</strong>
-      </div>
-
+      ${emergencyData.map(c => `
+        <div style="padding:15px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;gap:12px;">
+          <span>${esc(c.icon || "")} <strong>${esc(c.agency)}</strong></span>
+          <strong style="text-align:right;">${emergencyNumber(c)}</strong>
+        </div>`).join("")}
     </div>
   `);
 }
+
+renderEmergency();
+loadEmergency();
 
 
 // ADMIN LOGIN

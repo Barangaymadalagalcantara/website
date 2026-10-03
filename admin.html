@@ -55,6 +55,7 @@
       <button class="adm-tab" data-tab="announcements">Announcements</button>
       <button class="adm-tab" data-tab="ordinances">Ordinances &amp; Resolutions</button>
       <button class="adm-tab" data-tab="officials">Officials</button>
+      <button class="adm-tab" data-tab="emergency">Emergency Contacts</button>
       <button class="adm-tab" data-tab="editors" id="editorsTab" hidden>Editors</button>
     </div>
 
@@ -122,6 +123,17 @@
       </div>
       <p class="hint">Officials with no end year are shown as <b>current</b> on the website. Past terms appear automatically in the <b>Timeline of Past Officials</b>. Photos are shown in a gold picture frame (portrait 4:5, cropped automatically).</p>
       <div id="offAdminList"></div>
+    </section>
+
+    <!-- EMERGENCY CONTACTS -->
+    <section class="panel" id="panel-emergency" hidden>
+      <div class="toolbar">
+        <input type="search" id="emSearch" placeholder="Search agency or number...">
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+        <button class="add-btn" title="Add agency" aria-label="Add agency" onclick="openEmergencyForm()">+</button>
+      </div>
+      <p class="hint">These appear in the <b>Emergency Information</b> section and the <b>Emergency Hotlines</b> pop-up on the website. When an agency changes its number, click the pencil to update it. Numbers are tap-to-call on phones.</p>
+      <div class="ord-admin-list" id="emAdminList"></div>
     </section>
 
     <!-- EDITORS (admins only) -->

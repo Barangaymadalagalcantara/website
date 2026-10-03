@@ -112,3 +112,7 @@ tr.empty td { text-align: center; color: var(--text); padding: 30px; }
 .off-photo-col .photo-frame { margin-bottom: 12px; }
 .off-file-btn { display: inline-block; cursor: pointer; padding: 8px 14px; font-size: 13px; }
 @media (max-width: 600px) { .off-form-top { grid-template-columns: 1fr; } }
+
+/* EMERGENCY (admin) */
+.em-icon { width: 44px; height: 44px; display: grid; place-items: center; font-size: 24px; background: #fff5f5; border: 1px solid #efdede; border-radius: 10px; flex: 0 0 auto; }
+.em-phone { font-size: 15px !important; font-weight: 800; color: var(--danger) !important; }
