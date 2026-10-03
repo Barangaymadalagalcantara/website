@@ -1233,3 +1233,85 @@ a.ord-btn { display: inline-block; text-decoration: none; white-space: nowrap; }
 /* footer contact */
 .ft-empty { font-style: italic; }
 footer p[hidden], footer a[hidden] { display: none; }
+
+
+/* ===== HEADER ALIGNMENT FIX ===== */
+/* Top bar: all links together in one row on the upper RIGHT */
+.topbar {
+  justify-content: flex-end;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.topbar ul,
+.topbar ul.right {
+  margin: 0;
+  padding: 0;
+  gap: 24px;
+}
+
+/* Brand text: readable, left-aligned, evenly stacked beside the logo */
+.brand { flex-shrink: 0; gap: 14px; }
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  gap: 2px;
+}
+.brand-text em,
+.brand-text strong {
+  display: block;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.brand-text em { font-size: 13px; line-height: 1.3; color: #fff; }
+.brand-text strong { font-size: 20px; line-height: 1.2; }
+
+.admin-btn { white-space: nowrap; flex-shrink: 0; }
+nav { flex: 1; justify-content: flex-end; gap: 16px; font-size: 13px; }
+nav a { white-space: nowrap; }
+
+/* Medium screens: tighten nav so the brand text keeps its size */
+@media (max-width: 1440px) {
+  nav { gap: 12px; font-size: 12px; }
+  .admin-btn { padding: 10px 14px; }
+}
+@media (max-width: 1280px) {
+  .brand-text em { font-size: 12px; }
+  .brand-text strong { font-size: 18px; }
+  nav { gap: 9px; font-size: 11px; }
+}
+
+@media (max-width: 900px) {
+  .topbar { flex-direction: row; justify-content: flex-end; gap: 12px; font-size: 12px; }
+  .topbar ul, .topbar ul.right { gap: 12px; }
+  .topbar .right { display: flex; }
+  .brand-text em { font-size: 11px; white-space: normal; }
+  .brand-text strong { font-size: 16px; }
+}
+
+/* Collapse nav into the menu button before it can crowd the logo text */
+@media (max-width: 1150px) {
+  .navbar { position: sticky; }
+  nav {
+    display: none;
+    position: absolute;
+    top: 88px;
+    left: 0;
+    right: 0;
+    background: var(--primary);
+    padding: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    font-size: 14px;
+    border-bottom: 4px solid #f4b81a;
+  }
+  nav.active { display: flex; }
+  .menu-toggle { display: block; margin-left: auto; }
+  .admin-btn { display: none; }
+}
