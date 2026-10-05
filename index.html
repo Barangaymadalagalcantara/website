@@ -38,45 +38,12 @@
 
     <nav id="mainNav">
       <a href="#home">Home</a>
-      <div class="nav-dropdown" id="navServices">
-        <button type="button" class="nav-dropdown-btn" id="navServicesBtn" aria-haspopup="listbox" aria-expanded="false">
-          Services <span class="caret" aria-hidden="true">&#9662;</span>
-        </button>
-        <ul class="nav-dropdown-menu" id="serviceMenu" role="listbox" hidden></ul>
-      </div>
+      <a href="#services">Services</a>
       <a href="#announcements">Announcements</a>
-      <div class="nav-dropdown" id="navTransparency">
-        <button type="button" class="nav-dropdown-btn" id="navTransparencyBtn" aria-haspopup="listbox" aria-expanded="false">
-          Transparency <span class="caret" aria-hidden="true">&#9662;</span>
-        </button>
-        <ul class="nav-dropdown-menu" id="transparencyMenu" role="listbox" hidden></ul>
-      </div>
+      <a href="#ordinances">Ordinances</a>
+      <a href="#transparency">Transparency</a>
       <a href="#events">Events</a>
-      <div class="nav-dropdown" id="navAbout">
-        <button type="button" class="nav-dropdown-btn" id="navAboutBtn" aria-haspopup="listbox" aria-expanded="false">
-          About <span class="caret" aria-hidden="true">&#9662;</span>
-        </button>
-        <ul class="nav-dropdown-menu" id="aboutMenu" role="listbox" hidden>
-          <li role="option" tabindex="0" data-i="history"><strong>History and Location</strong></li>
-          <li class="has-sub">
-            <button type="button" class="sub-toggle" id="profileToggle" aria-expanded="false">
-              <strong>Barangay Profile</strong> <span class="caret" aria-hidden="true">&#9662;</span>
-            </button>
-            <ul class="nav-sub" id="profileSub" hidden>
-              <li role="option" tabindex="0" data-i="population">Total Population</li>
-              <li role="option" tabindex="0" data-i="households">Households</li>
-              <li role="option" tabindex="0" data-i="male">Male Residents</li>
-              <li role="option" tabindex="0" data-i="female">Female Residents</li>
-              <li role="option" tabindex="0" data-i="voters">Registered Voters</li>
-              <li role="option" tabindex="0" data-i="growth">Population Growth</li>
-              <li role="option" tabindex="0" data-i="history_table">Population History</li>
-              <li role="option" tabindex="0" data-i="age">Population by Age Group</li>
-              <li role="option" tabindex="0" data-i="sitio">Purok / Sitio</li>
-              <li role="option" tabindex="0" data-i="livelihood">Main Sources of Livelihood</li>
-            </ul>
-          </li>
-        </ul>
-      </div>
+      <a href="#about">About</a>
       <a href="#officials">Officials</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -98,7 +65,7 @@
       <h1>Welcome to<br>Barangay Madalag</h1>
 
       <div class="hero-buttons">
-        <button class="primary-btn" onclick="openServicesMenu()">Explore Services</button>
+        <button class="primary-btn" onclick="scrollToSection('services')">Explore Services</button>
         <button class="secondary-btn" onclick="openRequestModal()">Request a Service</button>
       </div>
     </div>
@@ -226,8 +193,13 @@
       </p>
     </div>
 
-    <div style="text-align:center;margin-top:24px;">
-      <button type="button" class="primary-btn" onclick="openServicesMenu()">Choose a Service</button>
+    <div class="service-dropdown" id="serviceDropdown">
+      <button type="button" class="service-dropdown-btn" id="serviceDropdownBtn"
+              aria-haspopup="listbox" aria-expanded="false">
+        <span>Select a Service</span>
+        <span class="caret" aria-hidden="true">&#9662;</span>
+      </button>
+      <ul class="service-dropdown-menu" id="serviceMenu" role="listbox" hidden></ul>
     </div>
 
   </section>
@@ -317,10 +289,6 @@
   </section>
 
 
-  <!-- SEPARATE TRANSPARENCY SECTIONS (Awards, Bids and Awards Committee, ...) -->
-  <div id="trExtraSections"></div>
-
-
   <!-- EVENTS -->
   <section class="section" id="events">
 
@@ -400,7 +368,7 @@
 
 
   <!-- ABOUT: HISTORY & LOCATION -->
-  <section class="section about-section" id="about" hidden>
+  <section class="section about-section" id="about">
 
     <div class="section-heading centered">
       <span class="section-label">OUR STORY</span>
@@ -414,7 +382,7 @@
 
 
   <!-- BARANGAY PROFILE -->
-  <section class="section profile-section" id="profile" hidden>
+  <section class="section profile-section" id="profile">
 
     <div class="section-heading centered">
       <span class="section-label">COMMUNITY AT A GLANCE</span>
@@ -508,8 +476,8 @@
         <a href="#transparency">Transparency Board</a>
         <a href="#events">Events</a>
         <a href="#gallery">Photo Gallery</a>
-        <a href="#" onclick="openAboutItem('history');return false;">History &amp; Location</a>
-        <a href="#" onclick="openAboutMenu(true);return false;">Barangay Profile</a>
+        <a href="#about">History &amp; Location</a>
+        <a href="#profile">Barangay Profile</a>
         <a href="#officials">Officials</a>
         <a href="#directory">Directory</a>
       </div>
