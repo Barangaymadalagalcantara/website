@@ -140,7 +140,7 @@ async function loadAboutPuroks() {
 let trData = [], trCat = "All";
 
 /* ---------- Transparency dropdown in the top navigation ----------
-   kind: "ordinance" | "resolution" -> opens that tab of Ordinances & Resolutions
+   kind: "ordinance" | "resolution" -> opens that list (Ordinances / Resolutions) in a pop-up
          "documents"                -> its own separate section further down the page (PDFs uploaded under the same category name)
    Managed in the admin portal (Transparency tab). Defaults are used until
    the transparency_menu table exists / has rows. */
@@ -202,10 +202,7 @@ function pickTransparency(i) {
   const m = trMenu[i];
   if (!m) return;
   if (m.kind === "ordinance" || m.kind === "resolution") {
-    ordType = m.kind === "ordinance" ? "Ordinance" : "Resolution";
-    document.querySelectorAll("#ordTabs .ord-tab").forEach(t => t.classList.toggle("active", t.dataset.type === ordType));
-    renderOrdinances();
-    scrollToSection("ordinances");
+    openOrdinanceList(m.kind === "ordinance" ? "Ordinance" : "Resolution");
   } else {
     const sec = document.getElementById(trSlug(m.name));
     if (sec) sec.scrollIntoView({ behavior: "smooth" });

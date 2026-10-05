@@ -87,7 +87,15 @@
           </li>
         </ul>
       </div>
-      <a href="#officials">Officials</a>
+      <div class="nav-dropdown" id="navOfficials">
+        <button type="button" class="nav-dropdown-btn" id="navOfficialsBtn" aria-haspopup="listbox" aria-expanded="false">
+          Officials <span class="caret" aria-hidden="true">&#9662;</span>
+        </button>
+        <ul class="nav-dropdown-menu" id="officialsMenu" role="listbox" hidden>
+          <li role="option" tabindex="0" data-i="current"><strong>Current Officials</strong></li>
+          <li role="option" tabindex="0" data-i="timeline"><strong>Timeline of Past Officials</strong></li>
+        </ul>
+      </div>
       <a href="#contact">Contact</a>
     </nav>
 
@@ -175,34 +183,6 @@
   </section>
 
 
-  <!-- ORDINANCES & RESOLUTIONS -->
-  <section class="section ordinances-section" id="ordinances">
-
-    <div class="section-heading">
-      <div>
-        <span class="section-label">TRANSPARENCY</span>
-        <h2>Ordinances &amp; Resolutions</h2>
-      </div>
-    </div>
-
-    <div class="ord-toolbar">
-      <div class="ord-tabs" id="ordTabs">
-        <button class="ord-tab active" data-type="All">All</button>
-        <button class="ord-tab" data-type="Ordinance">Ordinances</button>
-        <button class="ord-tab" data-type="Resolution">Resolutions</button>
-      </div>
-
-      <div class="ord-filters">
-        <input type="search" id="ordSearch" placeholder="Search title or number...">
-        <select id="ordYear"><option value="All">All Years</option></select>
-      </div>
-    </div>
-
-    <div class="ord-list" id="ordList"></div>
-
-  </section>
-
-
   <!-- TRANSPARENCY -->
   <section class="section transparency-section" id="transparency">
 
@@ -275,7 +255,7 @@
 
 
   <!-- OFFICIALS -->
-  <section class="section officials-section" id="officials">
+  <section class="section officials-section" id="officials" hidden>
 
     <div class="section-heading centered">
       <span class="section-label">BARANGAY LEADERSHIP</span>
@@ -351,13 +331,13 @@
         <h4>Quick Links</h4>
         <a href="#" onclick="openServicesMenu();return false;">Services</a>
         <a href="#" onclick="openAnnouncementsMenu();return false;">Announcements</a>
-        <a href="#ordinances">Ordinances &amp; Resolutions</a>
+        <a href="#" onclick="openOrdinanceList('All');return false;">Ordinances &amp; Resolutions</a>
         <a href="#transparency">Transparency Board</a>
         <a href="#" onclick="openEventsMenu();return false;">Events</a>
         <a href="#gallery">Photo Gallery</a>
         <a href="#" onclick="openAboutItem('history');return false;">History &amp; Location</a>
         <a href="#" onclick="openAboutMenu(true);return false;">Barangay Profile</a>
-        <a href="#officials">Officials</a>
+        <a href="#" onclick="openOfficialsMenu();return false;">Officials</a>
         <a href="#directory">Directory</a>
       </div>
 

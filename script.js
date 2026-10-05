@@ -630,6 +630,9 @@ function formatOrdDate(d) {
 }
 
 function renderOrdinances() {
+  const list = document.getElementById("ordList");
+  if (!list) return;   // list pop-up is not open
+
   const q = document.getElementById("ordSearch").value.trim().toLowerCase();
   const year = document.getElementById("ordYear").value;
 
@@ -640,8 +643,6 @@ function renderOrdinances() {
       && (o.title + " " + o.number).toLowerCase().includes(q))
     .sort((a, b) => b.date.localeCompare(a.date));
 
-  const list = document.getElementById("ordList");
-
   if (!rows.length) {
     list.innerHTML = '<div class="ord-empty">No ordinances or resolutions found.</div>';
     return;
@@ -649,10 +650,10 @@ function renderOrdinances() {
 
   list.innerHTML = rows.map(o => `
     <div class="ord-item">
-      <span class="ord-badge ${o.type === "Resolution" ? "res" : ""}">${o.type.toUpperCase()}</span>
+      <span class="ord-badge ${o.type === "Resolution" ? "res" : ""}">${esc(o.type.toUpperCase())}</span>
       <div class="ord-info">
-        <strong>${o.number}</strong>
-        <h3>${o.title}</h3>
+        <strong>${esc(o.number)}</strong>
+        <h3>${esc(o.title)}</h3>
         <small>Approved ${formatOrdDate(o.date)}</small>
       </div>
       <button class="ord-btn" onclick="openOrdinance(${o.i})">View</button>
@@ -663,43 +664,51 @@ function renderOrdinances() {
 function openOrdinance(i) {
   const o = ordinanceData[i];
   openModal(`
-    <span class="section-label">${o.type.toUpperCase()}</span>
-    <h2>${o.title}</h2>
+    <span class="section-label">${esc(o.type.toUpperCase())}</span>
+    <h2>${esc(o.title)}</h2>
     <div class="ord-meta">
-      <div><b>NUMBER</b>${o.number}</div>
+      <div><b>NUMBER</b>${esc(o.number)}</div>
       <div><b>DATE APPROVED</b>${formatOrdDate(o.date)}</div>
-      <div><b>STATUS</b>${o.status}</div>
-      <div><b>TYPE</b>${o.type}</div>
+      <div><b>STATUS</b>${esc(o.status)}</div>
+      <div><b>TYPE</b>${esc(o.type)}</div>
     </div>
-    <p>${o.summary}</p>
+    <p>${esc(o.summary)}</p>
     ${o.file
-      ? `<a class="primary-btn" style="display:inline-block;margin-top:16px;" href="${o.file}" target="_blank" rel="noopener">Download Copy (PDF)</a>`
+      ? `<a class="primary-btn" style="display:inline-block;margin-top:16px;" href="${esc(o.file)}" target="_blank" rel="noopener">Download Copy (PDF)</a>`
       : `<p style="margin-top:16px;font-size:13px;color:#7a6a5d;">A copy may be requested at the Barangay Hall.</p>`}
+    <div style="margin-top:18px"><button class="outline-btn" onclick="openOrdinanceList(ordType)">&larr; Back to list</button></div>
   `);
 }
 
 function populateOrdYears() {
-  const years = [...new Set(ordinanceData.map(o => o.date.slice(0, 4)))].sort().reverse();
-  document.getElementById("ordYear").innerHTML =
-    '<option value="All">All Years</option>' + years.map(y => `<option>${y}</option>`).join("");
+  const sel = document.getElementById("ordYear");
+  if (!sel) return;
+  const years = [...new Set(ordinanceData.filter(o => ordType === "All" || o.type === ordType)
+    .map(o => o.date.slice(0, 4)))].sort().reverse();
+  sel.innerHTML = '<option value="All">All Years</option>' + years.map(y => `<option>${y}</option>`).join("");
 }
 
-(function initOrdinances() {
+// Opens the list in a pop-up. type: "Ordinance", "Resolution" or "All"
+function openOrdinanceList(type) {
+  ordType = type || "All";
+  const title = ordType === "Ordinance" ? "Barangay Ordinances"
+              : ordType === "Resolution" ? "Barangay Resolutions" : "Ordinances & Resolutions";
+  openWideModal(`
+    <span class="section-label">TRANSPARENCY</span>
+    <h2>${esc(title)}</h2>
+    <div class="ord-toolbar">
+      <div class="ord-filters" style="width:100%">
+        <input type="search" id="ordSearch" placeholder="Search title or number...">
+        <select id="ordYear"><option value="All">All Years</option></select>
+      </div>
+    </div>
+    <div class="ord-list" id="ordList"></div>
+  `);
   populateOrdYears();
-
-  document.getElementById("ordTabs").addEventListener("click", e => {
-    const b = e.target.closest(".ord-tab");
-    if (!b) return;
-    document.querySelectorAll(".ord-tab").forEach(t => t.classList.remove("active"));
-    b.classList.add("active");
-    ordType = b.dataset.type;
-    renderOrdinances();
-  });
   document.getElementById("ordSearch").addEventListener("input", renderOrdinances);
   document.getElementById("ordYear").addEventListener("change", renderOrdinances);
   renderOrdinances();
-  loadOrdinances();
-})();
+}
 
 async function loadOrdinances() {
 
@@ -726,6 +735,8 @@ async function loadOrdinances() {
   populateOrdYears();
   renderOrdinances();
 }
+
+loadOrdinances();
 
 
 /* =========================
@@ -941,6 +952,23 @@ document.getElementById("offTabs").addEventListener("click", e => {
 });
 
 loadOfficials();
+
+// Officials dropdown (top navigation): each choice opens its content in a pop-up
+const setOfficialsMenuOpen = initNavDropdown("navOfficials", "navOfficialsBtn", "officialsMenu", key => {
+  const isCurrent = key === "current";
+  const src = document.getElementById(isCurrent ? "offCurrent" : "offTimeline");
+  openWideModal(`
+    <span class="section-label">BARANGAY LEADERSHIP</span>
+    <h2>${isCurrent ? "Current Officials" : "Timeline of Past Officials"}</h2>
+    <div class="officials-modal">${src ? src.innerHTML : ""}</div>`);
+});
+
+// Used by the footer link
+function openOfficialsMenu() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("mainNav").classList.add("active");
+  setOfficialsMenuOpen(true);
+}
 
 
 /* =========================
