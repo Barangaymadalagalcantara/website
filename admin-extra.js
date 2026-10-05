@@ -6,7 +6,7 @@
    Needs upgrade.sql to have been run in Supabase.
 ========================================================= */
 
-let siteSettings = {}, servicesList = [], directory = [], transparency = [], albums = [], galleryPhotos = [], activity = [];
+let siteSettings = {}, servicesList = [], eventsList = [], trMenuList = [], directory = [], transparency = [], albums = [], galleryPhotos = [], activity = [];
 
 const DIR_GROUPS = [
   "Lupong Tagapamayapa",
@@ -38,6 +38,16 @@ async function loadExtra() {
   if (sv.error) toast("Services could not load. Have you run services.sql in Supabase?", true);
   servicesList = sv.data || [];
 
+  const ev = await sb.from("site_events").select("*")
+    .order("event_date", { ascending: false }).order("created_at", { ascending: false });
+  if (ev.error) toast("Events could not load. Have you run events.sql in Supabase? (it creates the site_events table)", true);
+  eventsList = ev.data || [];
+
+  const tm = await sb.from("transparency_menu").select("*")
+    .order("sort_order", { ascending: true }).order("created_at", { ascending: true });
+  if (tm.error) toast("Transparency menu could not load. Have you run transparency_menu.sql in Supabase?", true);
+  trMenuList = tm.data || [];
+
   siteSettings = Object.fromEntries((s.data || []).map(r => [r.key, r.value || ""]));
   directory = d.data || [];
   transparency = t.data || [];
@@ -53,6 +63,8 @@ async function loadExtra() {
 function renderExtra() {
   renderSettings();
   renderServices();
+  renderEvents();
+  renderTransparencyMenuAdmin();
   renderDirectory();
   renderTransparency();
   renderGallery();
@@ -460,6 +472,202 @@ async function deleteService(id) {
 }
 
 /* =========================================================
+   EVENTS  (dropdown in the top navigation)
+========================================================= */
+const EVENT_CATEGORIES = ["Barangay", "Community", "Health", "Sports", "Education", "Other"];
+$("evSearch").addEventListener("input", renderEvents);
+
+function renderEvents() {
+  const q = $("evSearch").value.trim().toLowerCase();
+  const today = todayISO();
+  const rows = eventsList.filter(e => (e.title + " " + (e.location || "") + " " + (e.category || "")).toLowerCase().includes(q));
+
+  if (!rows.length) {
+    $("evAdminList").innerHTML = emptyBox(eventsList.length
+      ? "No events match your search."
+      : "No events yet. Click the + button to add one.");
+    return;
+  }
+
+  $("evAdminList").innerHTML = rows.map(e => {
+    const past = e.event_date < today;
+    const state = !e.is_published ? "HIDDEN" : past ? "PAST" : "LIVE";
+    const when = new Date(e.event_date + "T00:00:00").toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" });
+    return `
+    <div class="ord-row">
+      <div class="info">
+        <strong>${state}${e.category ? " &middot; " + esc(e.category.toUpperCase()) : ""}</strong>
+        <h4>${esc(e.title)}</h4>
+        <small>${esc(when)}${e.event_time ? " &middot; " + esc(e.event_time) : ""}${e.location ? " &middot; " + esc(e.location) : ""}</small>
+      </div>
+      <div class="acts">
+        <button class="icon-btn" title="Edit" aria-label="Edit" onclick="openEventForm('${e.id}')">&#9998;</button>
+        <button class="icon-btn del" title="Delete" aria-label="Delete" onclick="deleteEvent('${e.id}')">&#128465;</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function openEventForm(id) {
+  const ev = id ? eventsList.find(x => x.id === id) : null;
+  const v = ev || { title: "", event_date: todayISO(), event_time: "", location: "", category: "Barangay", description: "", is_published: true };
+  const cats = [...new Set([...EVENT_CATEGORIES, ...eventsList.map(x => x.category).filter(Boolean)])];
+
+  openModal(`
+    <span class="section-label">${ev ? "EDIT" : "NEW"} EVENT</span>
+    <h2>${ev ? "Edit Event" : "Add Event"}</h2>
+    <form id="evForm">
+      <div class="form-group"><label>Event name</label>
+        <input id="evTitle" required maxlength="120" placeholder="e.g. Barangay Assembly" value="${esc(v.title)}"></div>
+      <div class="row2">
+        <div class="form-group"><label>Date</label>
+          <input id="evDate" type="date" required value="${esc(v.event_date)}"></div>
+        <div class="form-group"><label>Time (optional)</label>
+          <input id="evTime" maxlength="40" placeholder="e.g. 8:00 AM" value="${esc(v.event_time || "")}"></div>
+      </div>
+      <div class="row2">
+        <div class="form-group"><label>Place (optional)</label>
+          <input id="evPlace" maxlength="120" placeholder="e.g. Barangay Covered Court" value="${esc(v.location || "")}"></div>
+        <div class="form-group"><label>Category</label>
+          <input id="evCat" maxlength="40" list="evCats" value="${esc(v.category || "")}">
+          <datalist id="evCats">${cats.map(c => `<option value="${esc(c)}">`).join("")}</datalist></div>
+      </div>
+      <div class="form-group"><label>Details (optional)</label>
+        <textarea id="evDesc" rows="3" maxlength="800">${esc(v.description || "")}</textarea></div>
+      <label class="check"><input id="evPublished" type="checkbox" ${v.is_published ? "checked" : ""}> Published (visible on the website)</label>
+      <div class="modal-actions">
+        <button class="primary-btn" type="submit" id="evSave">${ev ? "Save Changes" : "Add Event"}</button>
+        ${ev ? `<button class="danger-btn" type="button" onclick="deleteEvent('${ev.id}')">Delete</button>` : ""}
+      </div>
+    </form>
+  `);
+
+  $("evForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = $("evSave");
+    btn.disabled = true; btn.textContent = "Saving...";
+    const payload = {
+      title: $("evTitle").value.trim(),
+      event_date: $("evDate").value,
+      event_time: $("evTime").value.trim() || null,
+      location: $("evPlace").value.trim() || null,
+      category: $("evCat").value.trim() || null,
+      description: $("evDesc").value.trim() || null,
+      is_published: $("evPublished").checked
+    };
+    const { error } = ev ? await sb.from("site_events").update(payload).eq("id", ev.id)
+                         : await sb.from("site_events").insert(payload);
+    if (error) {
+      btn.disabled = false; btn.textContent = ev ? "Save Changes" : "Add Event";
+      return toast("Save failed.", true);
+    }
+    logActivity(ev ? "update" : "insert", "site_events", payload.title);
+    closeModal(); toast(ev ? "Event updated." : "Event added."); loadAll();
+  });
+}
+
+async function deleteEvent(id) {
+  const ev = eventsList.find(x => x.id === id);
+  if (!ev) return;
+  if (!confirm(`Delete "${ev.title}"? This cannot be undone.`)) return;
+  const { error } = await sb.from("site_events").delete().eq("id", id);
+  if (error) return toast("Delete failed.", true);
+  logActivity("delete", "site_events", ev.title);
+  closeModal(); toast("Deleted."); loadAll();
+}
+
+/* =========================================================
+   TRANSPARENCY MENU  (dropdown in the top navigation)
+========================================================= */
+const TR_KINDS = {
+  ordinance: "Opens the Ordinances list",
+  resolution: "Opens the Resolutions list",
+  documents: "Its own separate section with PDF documents"
+};
+
+function renderTransparencyMenuAdmin() {
+  const box = $("trMenuAdmin");
+  if (!box) return;
+  box.innerHTML = `
+    <div class="toolbar" style="margin-top:6px">
+      <h4 class="off-group-title" style="margin:0;flex:1">Transparency menu (top navigation)</h4>
+      <button class="add-btn" title="Add menu item" aria-label="Add menu item" onclick="openTrMenuForm()">+</button>
+    </div>
+    <p class="hint">These are the choices in the <b>Transparency</b> dropdown. Items that open <b>PDF documents</b> each get their own separate section on the website, showing the files you upload below under the same category name. If this list is empty the website uses its four default items.</p>
+    ${trMenuList.length ? `<div class="ord-admin-list">${trMenuList.map(m => `
+      <div class="ord-row">
+        <div class="info">
+          <strong>${m.is_published ? "LIVE" : "HIDDEN"}</strong>
+          <h4>${esc(m.name)}</h4>
+          <small>${esc(TR_KINDS[m.kind] || "")}</small>
+        </div>
+        <div class="acts">
+          <button class="icon-btn" title="Edit" aria-label="Edit" onclick="openTrMenuForm('${m.id}')">&#9998;</button>
+          <button class="icon-btn del" title="Delete" aria-label="Delete" onclick="deleteTrMenu('${m.id}')">&#128465;</button>
+        </div>
+      </div>`).join("")}</div>`
+      : emptyBox("No menu items yet. The website is showing its built-in defaults. Click + to add your own.")}`;
+}
+
+function openTrMenuForm(id) {
+  const m = id ? trMenuList.find(x => x.id === id) : null;
+  const v = m || { name: "", kind: "documents", sort_order: (trMenuList.length + 1) * 10, is_published: true };
+
+  openModal(`
+    <span class="section-label">${m ? "EDIT" : "NEW"} MENU ITEM</span>
+    <h2>${m ? "Edit Menu Item" : "Add Menu Item"}</h2>
+    <form id="tmForm">
+      <div class="form-group"><label>Name shown in the menu</label>
+        <input id="tmName" required maxlength="80" placeholder="e.g. Annual Reports" value="${esc(v.name)}"></div>
+      <div class="form-group"><label>What it opens</label>
+        <select id="tmKind">${Object.entries(TR_KINDS).map(([k, t]) =>
+          `<option value="${k}" ${k === v.kind ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></div>
+      <div class="row2">
+        <div class="form-group"><label>Display order (lower shows first)</label>
+          <input id="tmOrder" type="number" value="${esc(v.sort_order)}"></div>
+        <div></div>
+      </div>
+      <p class="hint">For PDF documents, upload files in the section below and choose this exact name as their <b>Category</b>.</p>
+      <label class="check"><input id="tmPublished" type="checkbox" ${v.is_published ? "checked" : ""}> Published (visible on the website)</label>
+      <div class="modal-actions">
+        <button class="primary-btn" type="submit" id="tmSave">${m ? "Save Changes" : "Add Item"}</button>
+        ${m ? `<button class="danger-btn" type="button" onclick="deleteTrMenu('${m.id}')">Delete</button>` : ""}
+      </div>
+    </form>
+  `);
+
+  $("tmForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = $("tmSave");
+    btn.disabled = true; btn.textContent = "Saving...";
+    const payload = {
+      name: $("tmName").value.trim(),
+      kind: $("tmKind").value,
+      sort_order: parseInt($("tmOrder").value, 10) || 0,
+      is_published: $("tmPublished").checked
+    };
+    const { error } = m ? await sb.from("transparency_menu").update(payload).eq("id", m.id)
+                        : await sb.from("transparency_menu").insert(payload);
+    if (error) {
+      btn.disabled = false; btn.textContent = m ? "Save Changes" : "Add Item";
+      return toast(error.code === "23505" ? "A menu item with that name already exists." : "Save failed.", true);
+    }
+    logActivity(m ? "update" : "insert", "transparency_menu", payload.name);
+    closeModal(); toast(m ? "Menu item updated." : "Menu item added."); loadAll();
+  });
+}
+
+async function deleteTrMenu(id) {
+  const m = trMenuList.find(x => x.id === id);
+  if (!m) return;
+  if (!confirm(`Remove "${m.name}" from the Transparency menu? Uploaded documents are not deleted.`)) return;
+  const { error } = await sb.from("transparency_menu").delete().eq("id", id);
+  if (error) return toast("Delete failed.", true);
+  logActivity("delete", "transparency_menu", m.name);
+  closeModal(); toast("Deleted."); loadAll();
+}
+
+/* =========================================================
    3. TRANSPARENCY
 ========================================================= */
 const docUrl = p => sb.storage.from("documents").getPublicUrl(p).data.publicUrl;
@@ -489,7 +697,8 @@ function renderTransparency() {
 function openTransparencyForm(id) {
   const t = id ? transparency.find(x => x.id === id) : null;
   const v = t || { category: TRANSPARENCY_CATEGORIES[0], title: "", fiscal_year: new Date().getFullYear(), file_path: null, is_published: true };
-  const cats = TRANSPARENCY_CATEGORIES.includes(v.category) ? TRANSPARENCY_CATEGORIES : [v.category, ...TRANSPARENCY_CATEGORIES];
+  const base = [...new Set([...trMenuList.filter(m => m.kind === "documents").map(m => m.name), ...TRANSPARENCY_CATEGORIES])];
+  const cats = base.includes(v.category) ? base : [v.category, ...base];
 
   openModal(`
     <span class="section-label">${t ? "EDIT" : "NEW"} TRANSPARENCY DOCUMENT</span>
@@ -715,7 +924,7 @@ const ACTION_LABELS = { insert: "Added", update: "Edited", delete: "Deleted", pr
 const TABLE_LABELS = {
   service_requests: "Service request", concerns: "Concern", announcements: "Announcement",
   ordinances: "Ordinance / resolution", officials: "Official", emergency_contacts: "Emergency contact",
-  profile_items: "Barangay profile", services: "Service", directory_members: "Directory", transparency_docs: "Transparency document",
+  profile_items: "Barangay profile", services: "Service", site_events: "Event", transparency_menu: "Transparency menu", directory_members: "Directory", transparency_docs: "Transparency document",
   gallery_albums: "Gallery album", gallery_photos: "Gallery photos", site_settings: "Site settings",
   admins: "Editor access", certificate: "Certificate", requests_csv: "Requests CSV", concerns_csv: "Concerns CSV",
   activity_csv: "Activity log CSV"

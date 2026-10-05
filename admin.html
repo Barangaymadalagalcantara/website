@@ -59,6 +59,7 @@
       <button class="adm-tab" data-tab="profile">Barangay Profile</button>
       <button class="adm-tab" data-tab="settings">Site Settings</button>
       <button class="adm-tab" data-tab="services">Services</button>
+      <button class="adm-tab" data-tab="events">Events</button>
       <button class="adm-tab" data-tab="directory">Directory</button>
       <button class="adm-tab" data-tab="transparency">Transparency</button>
       <button class="adm-tab" data-tab="gallery">Gallery</button>
@@ -171,6 +172,17 @@
       <div class="ord-admin-list" id="svcAdminList"></div>
     </section>
 
+    <!-- EVENTS -->
+    <section class="panel" id="panel-events" hidden>
+      <div class="toolbar">
+        <input type="search" id="evSearch" placeholder="Search events...">
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+        <button class="add-btn" title="Add event" aria-label="Add event" onclick="openEventForm()">+</button>
+      </div>
+      <p class="hint">These are the choices in the <b>Events</b> dropdown on the website. Add one with <b>+</b>, edit with the pencil, or delete with the trash can. Events appear on the website from the day you add them until their date has passed; past events are marked <b>PAST</b> here and are no longer shown to the public.</p>
+      <div class="ord-admin-list" id="evAdminList"></div>
+    </section>
+
     <!-- DIRECTORY -->
     <section class="panel" id="panel-directory" hidden>
       <div class="toolbar">
@@ -190,6 +202,8 @@
         <button class="add-btn" title="Upload document" aria-label="Upload document" onclick="openTransparencyForm()">+</button>
       </div>
       <p class="hint">Annual budget, Annual Investment Plan, financial reports and development plans, as PDFs. They appear in the <b>Transparency</b> section of the website.</p>
+      <div id="trMenuAdmin"></div>
+      <h4 class="off-group-title" style="margin-top:26px">Uploaded documents</h4>
       <div class="ord-admin-list" id="trAdminList"></div>
     </section>
 

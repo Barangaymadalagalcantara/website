@@ -38,8 +38,14 @@ function scrollToSection(id) {
 // MODAL
 
 function openModal(content) {
+  modalContent.parentElement.classList.remove("wide");
   modalContent.innerHTML = content;
   modalOverlay.classList.add("active");
+}
+
+function openWideModal(content) {
+  openModal(content);
+  modalContent.parentElement.classList.add("wide");
 }
 
 function closeModal() {
@@ -93,11 +99,12 @@ async function loadServices() {
   renderServiceMenu();
 }
 
-(function initServiceDropdown() {
-  const wrap = document.getElementById("serviceDropdown");
-  const btn  = document.getElementById("serviceDropdownBtn");
-  const menu = document.getElementById("serviceMenu");
-  if (!wrap || !btn || !menu) return;
+// Generic top-navigation dropdown. onPick(li) runs when an item is chosen.
+function initNavDropdown(wrapId, btnId, menuId, onPick) {
+  const wrap = document.getElementById(wrapId);
+  const btn  = document.getElementById(btnId);
+  const menu = document.getElementById(menuId);
+  if (!wrap || !btn || !menu) return () => {};
 
   const setOpen = open => {
     menu.hidden = !open;
@@ -107,7 +114,8 @@ async function loadServices() {
   const pick = li => {
     if (!li || li.dataset.i === undefined) return;
     setOpen(false);
-    openService(servicesData[Number(li.dataset.i)].name);
+    document.getElementById("mainNav").classList.remove("active");
+    onPick(li.dataset.i);
   };
 
   btn.addEventListener("click", () => setOpen(menu.hidden));
@@ -117,9 +125,19 @@ async function loadServices() {
   });
   document.addEventListener("click", e => { if (!wrap.contains(e.target)) setOpen(false); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
+  return setOpen;
+}
 
-  renderServiceMenu();
-})();
+const setServicesMenuOpen = initNavDropdown("navServices", "navServicesBtn", "serviceMenu",
+  i => openService(servicesData[i].name));
+renderServiceMenu();
+
+// Used by the hero and Services-section buttons
+function openServicesMenu() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("mainNav").classList.add("active");
+  setServicesMenuOpen(true);
+}
 
 loadServices();
 

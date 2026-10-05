@@ -13,7 +13,7 @@
   <div class="topbar">
     <ul>
       <li><a href="#announcements">News &amp; Updates</a></li>
-      <li><a href="#services">Freedom of Information</a></li>
+      <li><a href="#" onclick="openServicesMenu();return false;">Freedom of Information</a></li>
     </ul>
     <ul class="right">
       <li><a href="#contact" onclick="openEmergency()">Emergency Hotlines</a></li>
@@ -38,12 +38,50 @@
 
     <nav id="mainNav">
       <a href="#home">Home</a>
-      <a href="#services">Services</a>
+      <div class="nav-dropdown" id="navServices">
+        <button type="button" class="nav-dropdown-btn" id="navServicesBtn" aria-haspopup="listbox" aria-expanded="false">
+          Services <span class="caret" aria-hidden="true">&#9662;</span>
+        </button>
+        <ul class="nav-dropdown-menu" id="serviceMenu" role="listbox" hidden></ul>
+      </div>
       <a href="#announcements">Announcements</a>
-      <a href="#ordinances">Ordinances</a>
-      <a href="#transparency">Transparency</a>
-      <a href="#events">Events</a>
-      <a href="#about">About</a>
+      <div class="nav-dropdown" id="navTransparency">
+        <button type="button" class="nav-dropdown-btn" id="navTransparencyBtn" aria-haspopup="listbox" aria-expanded="false">
+          Transparency <span class="caret" aria-hidden="true">&#9662;</span>
+        </button>
+        <ul class="nav-dropdown-menu" id="transparencyMenu" role="listbox" hidden></ul>
+      </div>
+      <div class="nav-dropdown" id="navEvents">
+        <button type="button" class="nav-dropdown-btn" id="navEventsBtn" aria-haspopup="listbox" aria-expanded="false">
+          Events <span class="caret" aria-hidden="true">&#9662;</span>
+        </button>
+        <ul class="nav-dropdown-menu" id="eventsMenu" role="listbox" hidden></ul>
+      </div>
+      <div class="nav-dropdown" id="navAbout">
+        <button type="button" class="nav-dropdown-btn" id="navAboutBtn" aria-haspopup="listbox" aria-expanded="false">
+          About <span class="caret" aria-hidden="true">&#9662;</span>
+        </button>
+        <ul class="nav-dropdown-menu" id="aboutMenu" role="listbox" hidden>
+          <li role="option" tabindex="0" data-i="history"><strong>History and Location</strong></li>
+          <li class="has-sub">
+            <button type="button" class="sub-toggle" id="profileToggle" aria-expanded="false">
+              <strong>Barangay Profile</strong> <span class="caret" aria-hidden="true">&#9662;</span>
+            </button>
+            <ul class="nav-sub" id="profileSub" hidden>
+              <li role="option" tabindex="0" data-i="population">Total Population</li>
+              <li role="option" tabindex="0" data-i="households">Households</li>
+              <li role="option" tabindex="0" data-i="male">Male Residents</li>
+              <li role="option" tabindex="0" data-i="female">Female Residents</li>
+              <li role="option" tabindex="0" data-i="voters">Registered Voters</li>
+              <li role="option" tabindex="0" data-i="growth">Population Growth</li>
+              <li role="option" tabindex="0" data-i="history_table">Population History</li>
+              <li role="option" tabindex="0" data-i="age">Population by Age Group</li>
+              <li role="option" tabindex="0" data-i="sitio">Purok / Sitio</li>
+              <li role="option" tabindex="0" data-i="livelihood">Main Sources of Livelihood</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
       <a href="#officials">Officials</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -64,10 +102,6 @@
     <div class="hero-content">
       <h1>Welcome to<br>Barangay Madalag</h1>
 
-      <div class="hero-buttons">
-        <button class="primary-btn" onclick="scrollToSection('services')">Explore Services</button>
-        <button class="secondary-btn" onclick="openRequestModal()">Request a Service</button>
-      </div>
     </div>
 
   </section>
@@ -75,14 +109,6 @@
 
   <!-- QUICK ACTIONS -->
   <section class="quick-actions">
-
-    <div class="quick-card" onclick="openRequestModal()">
-      <div class="quick-icon">📄</div>
-      <div>
-        <h3>Request a Document</h3>
-        <p>Barangay certificates and clearances</p>
-      </div>
-    </div>
 
     <div class="quick-card" onclick="openTrackingModal()">
       <div class="quick-icon">🔎</div>
@@ -181,30 +207,6 @@
   </section>
 
 
-  <!-- SERVICES -->
-  <section class="section services-section" id="services">
-
-    <div class="section-heading centered">
-      <span class="section-label">BARANGAY SERVICES</span>
-      <h2>Services at Your Fingertips</h2>
-      <p>
-        Find information about barangay documents, requirements,
-        procedures, and service requests.
-      </p>
-    </div>
-
-    <div class="service-dropdown" id="serviceDropdown">
-      <button type="button" class="service-dropdown-btn" id="serviceDropdownBtn"
-              aria-haspopup="listbox" aria-expanded="false">
-        <span>Select a Service</span>
-        <span class="caret" aria-hidden="true">&#9662;</span>
-      </button>
-      <ul class="service-dropdown-menu" id="serviceMenu" role="listbox" hidden></ul>
-    </div>
-
-  </section>
-
-
   <!-- REQUEST TRACKING -->
   <section class="tracking-section">
 
@@ -289,66 +291,8 @@
   </section>
 
 
-  <!-- EVENTS -->
-  <section class="section" id="events">
-
-    <div class="section-heading">
-      <div>
-        <span class="section-label">COMMUNITY CALENDAR</span>
-        <h2>Upcoming Activities</h2>
-      </div>
-    </div>
-
-    <div class="events-list">
-
-      <div class="event-item">
-        <div class="event-date">
-          <strong>05</strong>
-          <span>OCT</span>
-        </div>
-
-        <div class="event-info">
-          <h3>Barangay Assembly</h3>
-          <p>📍 Barangay Covered Court</p>
-          <p>⏰ 8:00 AM</p>
-        </div>
-
-        <span class="event-tag">BARANGAY</span>
-      </div>
-
-      <div class="event-item">
-        <div class="event-date">
-          <strong>08</strong>
-          <span>OCT</span>
-        </div>
-
-        <div class="event-info">
-          <h3>Community Clean-Up Drive</h3>
-          <p>📍 Purok 3</p>
-          <p>⏰ 7:00 AM</p>
-        </div>
-
-        <span class="event-tag">COMMUNITY</span>
-      </div>
-
-      <div class="event-item">
-        <div class="event-date">
-          <strong>12</strong>
-          <span>OCT</span>
-        </div>
-
-        <div class="event-info">
-          <h3>Free Medical Mission</h3>
-          <p>📍 Barangay Health Center</p>
-          <p>⏰ 9:00 AM</p>
-        </div>
-
-        <span class="event-tag">HEALTH</span>
-      </div>
-
-    </div>
-
-  </section>
+  <!-- SEPARATE TRANSPARENCY SECTIONS (Awards, Bids and Awards Committee, ...) -->
+  <div id="trExtraSections"></div>
 
 
   <!-- GALLERY -->
@@ -368,7 +312,7 @@
 
 
   <!-- ABOUT: HISTORY & LOCATION -->
-  <section class="section about-section" id="about">
+  <section class="section about-section" id="about" hidden>
 
     <div class="section-heading centered">
       <span class="section-label">OUR STORY</span>
@@ -382,7 +326,7 @@
 
 
   <!-- BARANGAY PROFILE -->
-  <section class="section profile-section" id="profile">
+  <section class="section profile-section" id="profile" hidden>
 
     <div class="section-heading centered">
       <span class="section-label">COMMUNITY AT A GLANCE</span>
@@ -470,14 +414,14 @@
 
       <div>
         <h4>Quick Links</h4>
-        <a href="#services">Services</a>
+        <a href="#" onclick="openServicesMenu();return false;">Services</a>
         <a href="#announcements">Announcements</a>
         <a href="#ordinances">Ordinances &amp; Resolutions</a>
         <a href="#transparency">Transparency Board</a>
-        <a href="#events">Events</a>
+        <a href="#" onclick="openEventsMenu();return false;">Events</a>
         <a href="#gallery">Photo Gallery</a>
-        <a href="#about">History &amp; Location</a>
-        <a href="#profile">Barangay Profile</a>
+        <a href="#" onclick="openAboutItem('history');return false;">History &amp; Location</a>
+        <a href="#" onclick="openAboutMenu(true);return false;">Barangay Profile</a>
         <a href="#officials">Officials</a>
         <a href="#directory">Directory</a>
       </div>

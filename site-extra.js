@@ -138,24 +138,27 @@ async function loadAboutPuroks() {
    TRANSPARENCY BOARD
 ========================================================= */
 let trData = [], trCat = "All";
-const trFileUrl = p => (p && sb) ? sb.storage.from("documents").getPublicUrl(p).data.publicUrl : "";
 
-function renderTransparencyBoard() {
-  const list = document.getElementById("trList");
-  if (!list) return;
+/* ---------- Transparency dropdown in the top navigation ----------
+   kind: "ordinance" | "resolution" -> opens that tab of Ordinances & Resolutions
+         "documents"                -> its own separate section further down the page (PDFs uploaded under the same category name)
+   Managed in the admin portal (Transparency tab). Defaults are used until
+   the transparency_menu table exists / has rows. */
+const DEFAULT_TR_MENU = [
+  { name: "Barangay Ordinances",         kind: "ordinance" },
+  { name: "Barangay Resolutions",        kind: "resolution" },
+  { name: "Awards and Recognitions",     kind: "documents" },
+  { name: "Bids and Awards Committee",   kind: "documents" }
+];
+let trMenu = DEFAULT_TR_MENU.slice();
 
-  if (!trData.length) {
-    list.innerHTML = '<div class="ord-empty">Budget, investment plan and financial reports will be posted here soon.</div>';
-    document.getElementById("trTabs").innerHTML = "";
-    return;
-  }
+const trSlug = n => "tr-sec-" + String(n).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const trSepNames = () => new Set(trMenu.filter(m => m.kind === "documents").map(m => m.name));
+const trBoardDocs = () => { const sep = trSepNames(); return trData.filter(t => !sep.has(t.category)); };
 
-  const year = document.getElementById("trYear").value;
-  const rows = trData.filter(t => (trCat === "All" || t.category === trCat) && (year === "All" || String(t.fiscal_year) === year));
-
-  list.innerHTML = rows.length ? rows.map(t => {
-    const url = trFileUrl(t.file_path);
-    return `
+function trItemHTML(t) {
+  const url = trFileUrl(t.file_path);
+  return `
     <div class="ord-item">
       <span class="ord-badge tr-badge">${esc(t.category.toUpperCase())}</span>
       <div class="ord-info">
@@ -165,15 +168,92 @@ function renderTransparencyBoard() {
       </div>
       ${url ? `<a class="ord-btn" href="${esc(url)}" target="_blank" rel="noopener">Download PDF</a>` : ""}
     </div>`;
-  }).join("") : '<div class="ord-empty">No documents match your filter.</div>';
+}
+
+/* One separate page section per "documents" menu item */
+function renderTransparencySections() {
+  const box = document.getElementById("trExtraSections");
+  if (!box) return;
+  box.innerHTML = trMenu.filter(m => m.kind === "documents").map(m => {
+    const docs = trData.filter(t => t.category === m.name);
+    return `
+  <section class="section transparency-section" id="${esc(trSlug(m.name))}">
+    <div class="section-heading">
+      <div>
+        <span class="section-label">TRANSPARENCY</span>
+        <h2>${esc(m.name)}</h2>
+      </div>
+    </div>
+    <div class="ord-list">${docs.length ? docs.map(trItemHTML).join("")
+      : '<div class="ord-empty">Documents under ' + esc(m.name) + ' will be posted here soon.</div>'}</div>
+  </section>`;
+  }).join("");
+}
+
+function renderTransparencyMenu() {
+  const menu = document.getElementById("transparencyMenu");
+  if (!menu) return;
+  menu.innerHTML = trMenu.map((m, i) => `
+    <li role="option" tabindex="0" data-i="${i}"><strong>${esc(m.name)}</strong></li>`).join("")
+    || '<li class="empty">Nothing here yet.</li>';
+}
+
+function pickTransparency(i) {
+  const m = trMenu[i];
+  if (!m) return;
+  if (m.kind === "ordinance" || m.kind === "resolution") {
+    ordType = m.kind === "ordinance" ? "Ordinance" : "Resolution";
+    document.querySelectorAll("#ordTabs .ord-tab").forEach(t => t.classList.toggle("active", t.dataset.type === ordType));
+    renderOrdinances();
+    scrollToSection("ordinances");
+  } else {
+    const sec = document.getElementById(trSlug(m.name));
+    if (sec) sec.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+renderTransparencySections();
+initNavDropdown("navTransparency", "navTransparencyBtn", "transparencyMenu", pickTransparency);
+renderTransparencyMenu();
+
+async function loadTransparencyMenu() {
+  if (sb) {
+    const { data, error } = await sb.from("transparency_menu").select("name,kind,sort_order")
+      .eq("is_published", true)
+      .order("sort_order", { ascending: true }).order("created_at", { ascending: true });
+    if (!error && data && data.length) trMenu = data;
+  }
+  renderTransparencyMenu();
+  renderTransparencySections();
+  buildTransparencyControls();
+  renderTransparencyBoard();
+}
+const trFileUrl = p => (p && sb) ? sb.storage.from("documents").getPublicUrl(p).data.publicUrl : "";
+
+function renderTransparencyBoard() {
+  const list = document.getElementById("trList");
+  if (!list) return;
+
+  const docs = trBoardDocs();
+  if (!docs.length) {
+    list.innerHTML = '<div class="ord-empty">Budget, investment plan and financial reports will be posted here soon.</div>';
+    return;
+  }
+
+  const year = document.getElementById("trYear").value;
+  const rows = docs.filter(t => (trCat === "All" || t.category === trCat) && (year === "All" || String(t.fiscal_year) === year));
+
+  list.innerHTML = rows.length ? rows.map(trItemHTML).join("")
+    : '<div class="ord-empty">No documents match your filter.</div>';
 }
 
 function buildTransparencyControls() {
-  const cats = [...new Set(trData.map(t => t.category))];
+  const cats = [...new Set(trBoardDocs().map(t => t.category))];
+  if (trCat !== "All" && !cats.includes(trCat)) trCat = "All";
   document.getElementById("trTabs").innerHTML =
     ["All", ...cats].map(c => `<button class="ord-tab ${c === trCat ? "active" : ""}" data-cat="${esc(c)}">${c === "All" ? "All" : esc(c)}</button>`).join("");
 
-  const years = [...new Set(trData.map(t => t.fiscal_year).filter(Boolean))].sort((a, b) => b - a);
+  const years = [...new Set(trBoardDocs().map(t => t.fiscal_year).filter(Boolean))].sort((a, b) => b - a);
   document.getElementById("trYear").innerHTML =
     '<option value="All">All Years</option>' + years.map(y => `<option>${y}</option>`).join("");
 }
@@ -184,6 +264,7 @@ async function loadTransparencyBoard() {
       .order("fiscal_year", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
     if (!error && data) trData = data;
   }
+  renderTransparencySections();
   buildTransparencyControls();
   renderTransparencyBoard();
 }
@@ -372,6 +453,193 @@ async function loadDirectory() {
 renderAbout();
 loadSiteSettings();
 loadAboutPuroks();
-loadTransparencyBoard();
+loadTransparencyBoard().then(loadTransparencyMenu);
 loadGallery();
 loadDirectory();
+
+
+/* =========================================================
+   ABOUT DROPDOWN (top navigation)
+   History and Location + Barangay Profile (with its own sub-list).
+   Each choice opens its content in a pop-up.
+========================================================= */
+const setAboutMenuOpen = initNavDropdown("navAbout", "navAboutBtn", "aboutMenu", openAboutItem);
+
+(function initProfileSub() {
+  const t = document.getElementById("profileToggle"), sub = document.getElementById("profileSub");
+  if (!t || !sub) return;
+  t.addEventListener("click", () => {
+    sub.hidden = !sub.hidden;
+    t.setAttribute("aria-expanded", sub.hidden ? "false" : "true");
+  });
+})();
+
+// Used by the footer link
+function openAboutMenu(expandProfile) {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("mainNav").classList.add("active");
+  setAboutMenuOpen(true);
+  if (expandProfile) {
+    document.getElementById("profileSub").hidden = false;
+    document.getElementById("profileToggle").setAttribute("aria-expanded", "true");
+  }
+}
+
+const profSoon = what => `<div class="off-empty">${esc(what)} will be posted here soon.</div>`;
+
+function profStat(re, title) {
+  const s = profileData.filter(x => x.category === "stat" && hasVal(x) && re.test(x.label))
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))[0];
+  if (!s) return profSoon(title);
+  return `<div class="prof-stats"><div class="prof-stat">
+      <strong>${esc(fmtNum(s.value))}</strong>
+      <span>${esc(s.label)}</span>
+      ${s.as_of || s.source ? `<small>${esc([s.as_of ? "As of " + s.as_of : "", s.source || ""].filter(Boolean).join(" \u00b7 "))}</small>` : ""}
+    </div></div>`;
+}
+
+function profRows(cat) {
+  return profileData.filter(x => x.category === cat && hasVal(x)).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+}
+
+function profileModalBody(key) {
+  switch (key) {
+    case "population": return ["Total Population", profStat(/total\s*population|^population$/i, "Total population") ];
+    case "households": return ["Households", profStat(/household/i, "The number of households")];
+    case "male":       return ["Male Residents", profStat(/^male/i, "The number of male residents")];
+    case "female":     return ["Female Residents", profStat(/^female/i, "The number of female residents")];
+    case "voters":     return ["Registered Voters", profStat(/voter/i, "The number of registered voters")];
+
+    case "growth": {
+      const census = profRows("census").sort((a, b) => Number(a.label) - Number(b.label));
+      if (!census.length) return ["Population Growth", profSoon("Population growth")];
+      let trend = "";
+      if (census.length > 1) {
+        const a = census[census.length - 2], b = census[census.length - 1];
+        const pct = (Number(b.value) - Number(a.value)) / Number(a.value) * 100;
+        trend = `<p class="prof-trend">${pct >= 0 ? "Up" : "Down"} <b>${Math.abs(pct).toFixed(1)}%</b> from ${esc(a.label)} (${esc(fmtNum(a.value))}) to ${esc(b.label)} (${esc(fmtNum(b.value))}).</p>`;
+      }
+      return ["Population Growth", `<p class="prof-sub">Residents counted in each national census</p>${populationChartSVG(census)}${trend}${profNote(census, true)}`];
+    }
+
+    case "history_table": {
+      const census = profRows("census").sort((a, b) => Number(b.label) - Number(a.label));
+      if (!census.length) return ["Population History", profSoon("Population history")];
+      const showHh = census.some(r => r.value2 != null);
+      return ["Population History", `
+        <table class="prof-table">
+          <thead><tr><th>Census year</th><th>Population</th>${showHh ? "<th>Households</th>" : ""}<th>As of</th></tr></thead>
+          <tbody>${census.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(fmtNum(r.value))}</td>${showHh ? `<td>${r.value2 != null ? esc(fmtNum(r.value2)) : "\u2013"}</td>` : ""}<td>${esc(r.as_of || "")}</td></tr>`).join("")}</tbody>
+        </table>${profNote(census, true)}`];
+    }
+
+    case "age": {
+      const age = profRows("age");
+      return ["Population by Age Group", age.length ? barList(age) + profNote(age) : profSoon("Population by age group")];
+    }
+
+    case "sitio": {
+      const sitio = profRows("sitio");
+      if (!sitio.length) return ["Purok / Sitio", profSoon("Purok and sitio information")];
+      const tp = sitio.reduce((s, r) => s + Number(r.value || 0), 0);
+      const th = sitio.reduce((s, r) => s + Number(r.value2 || 0), 0);
+      const showHh = sitio.some(r => r.value2 != null);
+      return ["Purok / Sitio", `
+        <table class="prof-table">
+          <thead><tr><th>Name</th><th>Population</th>${showHh ? "<th>Households</th>" : ""}</tr></thead>
+          <tbody>${sitio.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(fmtNum(r.value))}</td>${showHh ? `<td>${r.value2 != null ? esc(fmtNum(r.value2)) : "\u2013"}</td>` : ""}</tr>`).join("")}</tbody>
+          <tfoot><tr><td>Total</td><td>${esc(fmtNum(tp))}</td>${showHh ? `<td>${esc(fmtNum(th))}</td>` : ""}</tr></tfoot>
+        </table>${profNote(sitio)}`];
+    }
+
+    case "livelihood": {
+      const live = profRows("livelihood");
+      return ["Main Sources of Livelihood", live.length ? barList(live) + profNote(live) : profSoon("Livelihood information")];
+    }
+  }
+  return null;
+}
+
+function openAboutItem(key) {
+  if (key === "history") {
+    renderAbout();
+    openWideModal(`
+      <span class="section-label">OUR STORY</span>
+      <h2>History &amp; Location</h2>
+      <div class="about-modal">${document.getElementById("aboutBody").innerHTML}</div>`);
+    return;
+  }
+  const r = profileModalBody(key);
+  if (!r) return;
+  openWideModal(`
+    <span class="section-label">BARANGAY PROFILE</span>
+    <h2>${esc(r[0])}</h2>
+    ${r[1]}
+    <p class="prof-foot">Figures are aggregate counts only, based on the Philippine Statistics Authority and barangay records. No personal information about individual residents is published.</p>`);
+}
+
+
+/* =========================================================
+   EVENTS DROPDOWN (top navigation)
+   Managed in the admin portal (Events tab). Only activities dated today
+   or later are listed. The built-in samples show only if the `site_events`
+   table has not been created yet.
+========================================================= */
+const todayStr = () => {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+};
+
+let eventsData = [
+  { title: "Barangay Assembly",       event_date: "2026-10-05", event_time: "8:00 AM", location: "Barangay Covered Court", category: "BARANGAY" },
+  { title: "Community Clean-Up Drive", event_date: "2026-10-08", event_time: "7:00 AM", location: "Purok 3",                 category: "COMMUNITY" },
+  { title: "Free Medical Mission",    event_date: "2026-10-12", event_time: "9:00 AM", location: "Barangay Health Center",  category: "HEALTH" }
+].filter(e => e.event_date >= todayStr());
+
+const evShort = d => new Date(d + "T00:00:00").toLocaleDateString("en-PH", { month: "short", day: "numeric" });
+const evLong  = d => new Date(d + "T00:00:00").toLocaleDateString("en-PH", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+function renderEventsMenu() {
+  const menu = document.getElementById("eventsMenu");
+  if (!menu) return;
+  menu.innerHTML = eventsData.map((ev, i) => `
+    <li role="option" tabindex="0" data-i="${i}">
+      <strong>${esc(ev.title)}</strong>
+      <small>${esc(evShort(ev.event_date))}${ev.event_time ? " \u00b7 " + esc(ev.event_time) : ""}</small>
+    </li>`).join("") || '<li class="empty">No upcoming activities right now.</li>';
+}
+
+async function loadEvents() {
+  if (sb) {
+    const { data, error } = await sb.from("site_events").select("*").eq("is_published", true)
+      .gte("event_date", todayStr())
+      .order("event_date", { ascending: true }).order("created_at", { ascending: true });
+    if (!error && data) eventsData = data;
+  }
+  renderEventsMenu();
+}
+
+const setEventsMenuOpen = initNavDropdown("navEvents", "navEventsBtn", "eventsMenu", i => {
+  const ev = eventsData[i];
+  if (!ev) return;
+  openModal(`
+    <span class="section-label">${esc((ev.category || "UPCOMING ACTIVITY").toUpperCase())}</span>
+    <h2>${esc(ev.title)}</h2>
+    <div class="ord-meta">
+      <div><b>DATE</b>${esc(evLong(ev.event_date))}</div>
+      ${ev.event_time ? `<div><b>TIME</b>${esc(ev.event_time)}</div>` : ""}
+      ${ev.location ? `<div><b>PLACE</b>${esc(ev.location)}</div>` : ""}
+    </div>
+    ${ev.description ? `<p style="margin-top:14px">${esc(ev.description).replace(/\n/g, "<br>")}</p>` : ""}
+    <p style="margin-top:14px;font-size:13px;color:#7a6a5d;">For questions, please contact the Barangay Office.</p>`);
+});
+
+// Used by the footer link
+function openEventsMenu() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("mainNav").classList.add("active");
+  setEventsMenuOpen(true);
+}
+
+renderEventsMenu();
+loadEvents();
