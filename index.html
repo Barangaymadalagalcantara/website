@@ -12,7 +12,7 @@
   <!-- TOP UTILITY BAR -->
   <div class="topbar">
     <ul>
-      <li><a href="#announcements">News &amp; Updates</a></li>
+      <li><a href="#" onclick="openAnnouncementsMenu();return false;">News &amp; Updates</a></li>
       <li><a href="#" onclick="openServicesMenu();return false;">Freedom of Information</a></li>
     </ul>
     <ul class="right">
@@ -44,7 +44,12 @@
         </button>
         <ul class="nav-dropdown-menu" id="serviceMenu" role="listbox" hidden></ul>
       </div>
-      <a href="#announcements">Announcements</a>
+      <div class="nav-dropdown" id="navAnnouncements">
+        <button type="button" class="nav-dropdown-btn" id="navAnnouncementsBtn" aria-haspopup="listbox" aria-expanded="false">
+          Announcements <span class="caret" aria-hidden="true">&#9662;</span>
+        </button>
+        <ul class="nav-dropdown-menu" id="announcementsMenu" role="listbox" hidden></ul>
+      </div>
       <div class="nav-dropdown" id="navTransparency">
         <button type="button" class="nav-dropdown-btn" id="navTransparencyBtn" aria-haspopup="listbox" aria-expanded="false">
           Transparency <span class="caret" aria-hidden="true">&#9662;</span>
@@ -132,76 +137,6 @@
         <h3>Emergency</h3>
         <p>Important emergency contacts</p>
       </div>
-    </div>
-
-  </section>
-
-
-  <!-- ANNOUNCEMENTS -->
-  <section class="section" id="announcements">
-
-    <div class="section-heading">
-      <div>
-        <span class="section-label">LATEST INFORMATION</span>
-        <h2>Barangay Announcements</h2>
-      </div>
-
-      <button class="outline-btn" onclick="showAllAnnouncements()">
-        View All
-      </button>
-    </div>
-
-    <div class="announcement-grid">
-
-      <article class="announcement-card featured">
-        <div class="announcement-date">
-          <strong>05</strong>
-          <span>OCT</span>
-        </div>
-
-        <div>
-          <span class="category">BARANGAY NOTICE</span>
-          <h3>Barangay Assembly Meeting</h3>
-          <p>
-            All residents are invited to attend the upcoming
-            Barangay Assembly Meeting.
-          </p>
-          <small>📍 Barangay Covered Court</small>
-        </div>
-      </article>
-
-      <article class="announcement-card">
-        <div class="announcement-date">
-          <strong>08</strong>
-          <span>OCT</span>
-        </div>
-
-        <div>
-          <span class="category">COMMUNITY</span>
-          <h3>Community Clean-Up Drive</h3>
-          <p>
-            Join our community clean-up activity in designated areas.
-          </p>
-          <small>⏰ 7:00 AM</small>
-        </div>
-      </article>
-
-      <article class="announcement-card">
-        <div class="announcement-date">
-          <strong>12</strong>
-          <span>OCT</span>
-        </div>
-
-        <div>
-          <span class="category">HEALTH</span>
-          <h3>Free Medical Check-Up</h3>
-          <p>
-            Free basic health consultation for barangay residents.
-          </p>
-          <small>📍 Barangay Health Center</small>
-        </div>
-      </article>
-
     </div>
 
   </section>
@@ -415,7 +350,7 @@
       <div>
         <h4>Quick Links</h4>
         <a href="#" onclick="openServicesMenu();return false;">Services</a>
-        <a href="#announcements">Announcements</a>
+        <a href="#" onclick="openAnnouncementsMenu();return false;">Announcements</a>
         <a href="#ordinances">Ordinances &amp; Resolutions</a>
         <a href="#transparency">Transparency Board</a>
         <a href="#" onclick="openEventsMenu();return false;">Events</a>

@@ -539,78 +539,74 @@ function openAdminLogin() {
 }
 
 
-// ANNOUNCEMENTS (loaded from Supabase; the static cards in index.html are the fallback)
+// ANNOUNCEMENTS (top-navigation dropdown; managed in the admin portal)
+// The built-in samples show only if the announcements table cannot be read.
 
-let allAnnouncements = [];
+let allAnnouncements = [
+  { title: "Barangay Assembly Meeting", category: "BARANGAY NOTICE", event_date: "2026-10-05", location: "Barangay Covered Court", event_time: "",
+    body: "All residents are invited to attend the upcoming Barangay Assembly Meeting." },
+  { title: "Community Clean-Up Drive", category: "COMMUNITY", event_date: "2026-10-08", location: "", event_time: "7:00 AM",
+    body: "Join our community clean-up activity in designated areas." },
+  { title: "Free Medical Check-Up", category: "HEALTH", event_date: "2026-10-12", location: "Barangay Health Center", event_time: "",
+    body: "Free basic health consultation for barangay residents." }
+];
+let annMenuList = [];
 
 function annParts(a) {
   const d = new Date(a.event_date + "T00:00:00");
   return { day: String(d.getDate()).padStart(2, "0"), mon: MONTHS[d.getMonth()], d };
 }
 
-function annSub(a) {
-  if (a.location) return "📍 " + esc(a.location);
-  if (a.event_time) return "⏰ " + esc(a.event_time);
-  return "";
+function renderAnnouncementsMenu() {
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = allAnnouncements.filter(a => a.event_date >= today).sort((x, y) => x.event_date.localeCompare(y.event_date));
+  const past = allAnnouncements.filter(a => a.event_date < today).sort((x, y) => y.event_date.localeCompare(x.event_date));
+  annMenuList = [...upcoming, ...past].slice(0, 20);
+
+  const menu = document.getElementById("announcementsMenu");
+  if (!menu) return;
+  menu.innerHTML = annMenuList.map((a, i) => {
+    const p = annParts(a);
+    return `
+    <li role="option" tabindex="0" data-i="${i}">
+      <strong>${esc(a.title)}</strong>
+      <small>${esc(p.mon)} ${esc(p.day)}${a.category ? " \u00b7 " + esc(a.category) : ""}</small>
+    </li>`;
+  }).join("") || '<li class="empty">No announcements right now.</li>';
 }
 
 async function loadAnnouncements() {
-
-  if (!sb) return;
-
-  const { data, error } = await sb
-    .from("announcements")
-    .select("*")
-    .eq("is_published", true)
-    .order("event_date", { ascending: false })
-    .limit(100);
-
-  if (error || !data || !data.length) return;
-
-  allAnnouncements = data;
-
-  const today = new Date().toISOString().slice(0, 10);
-  const upcoming = data.filter(a => a.event_date >= today).sort((x, y) => x.event_date.localeCompare(y.event_date));
-  const shown = (upcoming.length ? upcoming : data).slice(0, 3);
-
-  document.querySelector(".announcement-grid").innerHTML = shown.map((a, i) => {
-    const p = annParts(a);
-    return `
-      <article class="announcement-card ${i === 0 ? "featured" : ""}">
-        <div class="announcement-date"><strong>${p.day}</strong><span>${p.mon}</span></div>
-        <div>
-          <span class="category">${esc(a.category)}</span>
-          <h3>${esc(a.title)}</h3>
-          <p>${esc(a.body)}</p>
-          <small>${annSub(a)}</small>
-        </div>
-      </article>`;
-  }).join("");
+  if (sb) {
+    const { data, error } = await sb.from("announcements").select("*")
+      .eq("is_published", true).order("event_date", { ascending: false }).limit(100);
+    if (!error && data) allAnnouncements = data;
+  }
+  renderAnnouncementsMenu();
 }
 
-function showAllAnnouncements() {
-
-  const list = allAnnouncements.length ? allAnnouncements : [];
-
-  const rows = list.length
-    ? list.map(a => {
-        const p = annParts(a);
-        return `
-          <div style="padding:15px;border-bottom:1px solid #eee;">
-            <strong>${esc(a.title)}</strong>
-            <p style="font-size:13px;">${p.d.toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" })}${a.location ? " · " + esc(a.location) : ""}</p>
-            <p style="font-size:13px;margin-top:4px;">${esc(a.body)}</p>
-          </div>`;
-      }).join("")
-    : '<p style="padding:15px;">No announcements available.</p>';
-
+const setAnnouncementsMenuOpen = initNavDropdown("navAnnouncements", "navAnnouncementsBtn", "announcementsMenu", i => {
+  const a = annMenuList[i];
+  if (!a) return;
+  const p = annParts(a);
   openModal(`
-    <span class="section-label">BARANGAY INFORMATION</span>
-    <h2>All Announcements</h2>
-    <div style="margin-top:20px;max-height:60vh;overflow:auto;">${rows}</div>
-  `);
+    <span class="section-label">${esc(a.category || "ANNOUNCEMENT")}</span>
+    <h2>${esc(a.title)}</h2>
+    <div class="ord-meta">
+      <div><b>DATE</b>${esc(p.d.toLocaleDateString("en-PH", { weekday: "long", year: "numeric", month: "long", day: "numeric" }))}</div>
+      ${a.event_time ? `<div><b>TIME</b>${esc(a.event_time)}</div>` : ""}
+      ${a.location ? `<div><b>PLACE</b>${esc(a.location)}</div>` : ""}
+    </div>
+    <p style="margin-top:14px">${esc(a.body).replace(/\n/g, "<br>")}</p>`);
+});
+
+// Used by the top-bar and footer links
+function openAnnouncementsMenu() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("mainNav").classList.add("active");
+  setAnnouncementsMenuOpen(true);
 }
 
+renderAnnouncementsMenu();
 loadAnnouncements();
 
 
