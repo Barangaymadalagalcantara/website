@@ -38,8 +38,14 @@ function scrollToSection(id) {
 // MODAL
 
 function openModal(content) {
+  modalContent.parentElement.classList.remove("wide");
   modalContent.innerHTML = content;
   modalOverlay.classList.add("active");
+}
+
+function openWideModal(content) {
+  openModal(content);
+  modalContent.parentElement.classList.add("wide");
 }
 
 function closeModal() {
@@ -109,7 +115,7 @@ function initNavDropdown(wrapId, btnId, menuId, onPick) {
     if (!li || li.dataset.i === undefined) return;
     setOpen(false);
     document.getElementById("mainNav").classList.remove("active");
-    onPick(Number(li.dataset.i));
+    onPick(li.dataset.i);
   };
 
   btn.addEventListener("click", () => setOpen(menu.hidden));

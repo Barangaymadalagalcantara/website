@@ -456,3 +456,124 @@ loadAboutPuroks();
 loadTransparencyBoard().then(loadTransparencyMenu);
 loadGallery();
 loadDirectory();
+
+
+/* =========================================================
+   ABOUT DROPDOWN (top navigation)
+   History and Location + Barangay Profile (with its own sub-list).
+   Each choice opens its content in a pop-up.
+========================================================= */
+const setAboutMenuOpen = initNavDropdown("navAbout", "navAboutBtn", "aboutMenu", openAboutItem);
+
+(function initProfileSub() {
+  const t = document.getElementById("profileToggle"), sub = document.getElementById("profileSub");
+  if (!t || !sub) return;
+  t.addEventListener("click", () => {
+    sub.hidden = !sub.hidden;
+    t.setAttribute("aria-expanded", sub.hidden ? "false" : "true");
+  });
+})();
+
+// Used by the footer link
+function openAboutMenu(expandProfile) {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("mainNav").classList.add("active");
+  setAboutMenuOpen(true);
+  if (expandProfile) {
+    document.getElementById("profileSub").hidden = false;
+    document.getElementById("profileToggle").setAttribute("aria-expanded", "true");
+  }
+}
+
+const profSoon = what => `<div class="off-empty">${esc(what)} will be posted here soon.</div>`;
+
+function profStat(re, title) {
+  const s = profileData.filter(x => x.category === "stat" && hasVal(x) && re.test(x.label))
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))[0];
+  if (!s) return profSoon(title);
+  return `<div class="prof-stats"><div class="prof-stat">
+      <strong>${esc(fmtNum(s.value))}</strong>
+      <span>${esc(s.label)}</span>
+      ${s.as_of || s.source ? `<small>${esc([s.as_of ? "As of " + s.as_of : "", s.source || ""].filter(Boolean).join(" \u00b7 "))}</small>` : ""}
+    </div></div>`;
+}
+
+function profRows(cat) {
+  return profileData.filter(x => x.category === cat && hasVal(x)).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+}
+
+function profileModalBody(key) {
+  switch (key) {
+    case "population": return ["Total Population", profStat(/total\s*population|^population$/i, "Total population") ];
+    case "households": return ["Households", profStat(/household/i, "The number of households")];
+    case "male":       return ["Male Residents", profStat(/^male/i, "The number of male residents")];
+    case "female":     return ["Female Residents", profStat(/^female/i, "The number of female residents")];
+    case "voters":     return ["Registered Voters", profStat(/voter/i, "The number of registered voters")];
+
+    case "growth": {
+      const census = profRows("census").sort((a, b) => Number(a.label) - Number(b.label));
+      if (!census.length) return ["Population Growth", profSoon("Population growth")];
+      let trend = "";
+      if (census.length > 1) {
+        const a = census[census.length - 2], b = census[census.length - 1];
+        const pct = (Number(b.value) - Number(a.value)) / Number(a.value) * 100;
+        trend = `<p class="prof-trend">${pct >= 0 ? "Up" : "Down"} <b>${Math.abs(pct).toFixed(1)}%</b> from ${esc(a.label)} (${esc(fmtNum(a.value))}) to ${esc(b.label)} (${esc(fmtNum(b.value))}).</p>`;
+      }
+      return ["Population Growth", `<p class="prof-sub">Residents counted in each national census</p>${populationChartSVG(census)}${trend}${profNote(census, true)}`];
+    }
+
+    case "history_table": {
+      const census = profRows("census").sort((a, b) => Number(b.label) - Number(a.label));
+      if (!census.length) return ["Population History", profSoon("Population history")];
+      const showHh = census.some(r => r.value2 != null);
+      return ["Population History", `
+        <table class="prof-table">
+          <thead><tr><th>Census year</th><th>Population</th>${showHh ? "<th>Households</th>" : ""}<th>As of</th></tr></thead>
+          <tbody>${census.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(fmtNum(r.value))}</td>${showHh ? `<td>${r.value2 != null ? esc(fmtNum(r.value2)) : "\u2013"}</td>` : ""}<td>${esc(r.as_of || "")}</td></tr>`).join("")}</tbody>
+        </table>${profNote(census, true)}`];
+    }
+
+    case "age": {
+      const age = profRows("age");
+      return ["Population by Age Group", age.length ? barList(age) + profNote(age) : profSoon("Population by age group")];
+    }
+
+    case "sitio": {
+      const sitio = profRows("sitio");
+      if (!sitio.length) return ["Purok / Sitio", profSoon("Purok and sitio information")];
+      const tp = sitio.reduce((s, r) => s + Number(r.value || 0), 0);
+      const th = sitio.reduce((s, r) => s + Number(r.value2 || 0), 0);
+      const showHh = sitio.some(r => r.value2 != null);
+      return ["Purok / Sitio", `
+        <table class="prof-table">
+          <thead><tr><th>Name</th><th>Population</th>${showHh ? "<th>Households</th>" : ""}</tr></thead>
+          <tbody>${sitio.map(r => `<tr><td>${esc(r.label)}</td><td>${esc(fmtNum(r.value))}</td>${showHh ? `<td>${r.value2 != null ? esc(fmtNum(r.value2)) : "\u2013"}</td>` : ""}</tr>`).join("")}</tbody>
+          <tfoot><tr><td>Total</td><td>${esc(fmtNum(tp))}</td>${showHh ? `<td>${esc(fmtNum(th))}</td>` : ""}</tr></tfoot>
+        </table>${profNote(sitio)}`];
+    }
+
+    case "livelihood": {
+      const live = profRows("livelihood");
+      return ["Main Sources of Livelihood", live.length ? barList(live) + profNote(live) : profSoon("Livelihood information")];
+    }
+  }
+  return null;
+}
+
+function openAboutItem(key) {
+  if (key === "history") {
+    renderAbout();
+    openWideModal(`
+      <span class="section-label">OUR STORY</span>
+      <h2>History &amp; Location</h2>
+      <div class="about-modal">${document.getElementById("aboutBody").innerHTML}</div>`);
+    return;
+  }
+  const r = profileModalBody(key);
+  if (!r) return;
+  openWideModal(`
+    <span class="section-label">BARANGAY PROFILE</span>
+    <h2>${esc(r[0])}</h2>
+    ${r[1]}
+    <p class="prof-foot">Figures are aggregate counts only, based on the Philippine Statistics Authority and barangay records. No personal information about individual residents is published.</p>`);
+}

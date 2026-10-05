@@ -52,7 +52,31 @@
         <ul class="nav-dropdown-menu" id="transparencyMenu" role="listbox" hidden></ul>
       </div>
       <a href="#events">Events</a>
-      <a href="#about">About</a>
+      <div class="nav-dropdown" id="navAbout">
+        <button type="button" class="nav-dropdown-btn" id="navAboutBtn" aria-haspopup="listbox" aria-expanded="false">
+          About <span class="caret" aria-hidden="true">&#9662;</span>
+        </button>
+        <ul class="nav-dropdown-menu" id="aboutMenu" role="listbox" hidden>
+          <li role="option" tabindex="0" data-i="history"><strong>History and Location</strong></li>
+          <li class="has-sub">
+            <button type="button" class="sub-toggle" id="profileToggle" aria-expanded="false">
+              <strong>Barangay Profile</strong> <span class="caret" aria-hidden="true">&#9662;</span>
+            </button>
+            <ul class="nav-sub" id="profileSub" hidden>
+              <li role="option" tabindex="0" data-i="population">Total Population</li>
+              <li role="option" tabindex="0" data-i="households">Households</li>
+              <li role="option" tabindex="0" data-i="male">Male Residents</li>
+              <li role="option" tabindex="0" data-i="female">Female Residents</li>
+              <li role="option" tabindex="0" data-i="voters">Registered Voters</li>
+              <li role="option" tabindex="0" data-i="growth">Population Growth</li>
+              <li role="option" tabindex="0" data-i="history_table">Population History</li>
+              <li role="option" tabindex="0" data-i="age">Population by Age Group</li>
+              <li role="option" tabindex="0" data-i="sitio">Purok / Sitio</li>
+              <li role="option" tabindex="0" data-i="livelihood">Main Sources of Livelihood</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
       <a href="#officials">Officials</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -376,7 +400,7 @@
 
 
   <!-- ABOUT: HISTORY & LOCATION -->
-  <section class="section about-section" id="about">
+  <section class="section about-section" id="about" hidden>
 
     <div class="section-heading centered">
       <span class="section-label">OUR STORY</span>
@@ -390,7 +414,7 @@
 
 
   <!-- BARANGAY PROFILE -->
-  <section class="section profile-section" id="profile">
+  <section class="section profile-section" id="profile" hidden>
 
     <div class="section-heading centered">
       <span class="section-label">COMMUNITY AT A GLANCE</span>
@@ -484,8 +508,8 @@
         <a href="#transparency">Transparency Board</a>
         <a href="#events">Events</a>
         <a href="#gallery">Photo Gallery</a>
-        <a href="#about">History &amp; Location</a>
-        <a href="#profile">Barangay Profile</a>
+        <a href="#" onclick="openAboutItem('history');return false;">History &amp; Location</a>
+        <a href="#" onclick="openAboutMenu(true);return false;">Barangay Profile</a>
         <a href="#officials">Officials</a>
         <a href="#directory">Directory</a>
       </div>
