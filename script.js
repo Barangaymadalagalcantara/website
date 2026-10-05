@@ -93,9 +93,11 @@ async function loadServices() {
   renderServiceMenu();
 }
 
+let setServicesMenuOpen = () => {};
+
 (function initServiceDropdown() {
-  const wrap = document.getElementById("serviceDropdown");
-  const btn  = document.getElementById("serviceDropdownBtn");
+  const wrap = document.getElementById("navServices");
+  const btn  = document.getElementById("navServicesBtn");
   const menu = document.getElementById("serviceMenu");
   if (!wrap || !btn || !menu) return;
 
@@ -104,9 +106,12 @@ async function loadServices() {
     wrap.classList.toggle("open", open);
     btn.setAttribute("aria-expanded", open ? "true" : "false");
   };
+  setServicesMenuOpen = setOpen;
+
   const pick = li => {
     if (!li || li.dataset.i === undefined) return;
     setOpen(false);
+    document.getElementById("mainNav").classList.remove("active");
     openService(servicesData[Number(li.dataset.i)].name);
   };
 
@@ -120,6 +125,13 @@ async function loadServices() {
 
   renderServiceMenu();
 })();
+
+// Used by the hero and Services-section buttons
+function openServicesMenu() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("mainNav").classList.add("active");
+  setServicesMenuOpen(true);
+}
 
 loadServices();
 

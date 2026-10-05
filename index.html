@@ -38,7 +38,12 @@
 
     <nav id="mainNav">
       <a href="#home">Home</a>
-      <a href="#services">Services</a>
+      <div class="nav-dropdown" id="navServices">
+        <button type="button" class="nav-dropdown-btn" id="navServicesBtn" aria-haspopup="listbox" aria-expanded="false">
+          Services <span class="caret" aria-hidden="true">&#9662;</span>
+        </button>
+        <ul class="nav-dropdown-menu" id="serviceMenu" role="listbox" hidden></ul>
+      </div>
       <a href="#announcements">Announcements</a>
       <a href="#ordinances">Ordinances</a>
       <a href="#transparency">Transparency</a>
@@ -65,7 +70,7 @@
       <h1>Welcome to<br>Barangay Madalag</h1>
 
       <div class="hero-buttons">
-        <button class="primary-btn" onclick="scrollToSection('services')">Explore Services</button>
+        <button class="primary-btn" onclick="openServicesMenu()">Explore Services</button>
         <button class="secondary-btn" onclick="openRequestModal()">Request a Service</button>
       </div>
     </div>
@@ -193,13 +198,8 @@
       </p>
     </div>
 
-    <div class="service-dropdown" id="serviceDropdown">
-      <button type="button" class="service-dropdown-btn" id="serviceDropdownBtn"
-              aria-haspopup="listbox" aria-expanded="false">
-        <span>Select a Service</span>
-        <span class="caret" aria-hidden="true">&#9662;</span>
-      </button>
-      <ul class="service-dropdown-menu" id="serviceMenu" role="listbox" hidden></ul>
+    <div style="text-align:center;margin-top:24px;">
+      <button type="button" class="primary-btn" onclick="openServicesMenu()">Choose a Service</button>
     </div>
 
   </section>
