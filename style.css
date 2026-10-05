@@ -1315,3 +1315,11 @@ nav a { white-space: nowrap; }
   .menu-toggle { display: block; margin-left: auto; }
   .admin-btn { display: none; }
 }
+
+/* Footer: same seal + wording as the upper-left header brand */
+.footer-lockup { align-items: center; gap: 14px; }
+.footer-lockup .brand-text em { color: #fff; white-space: normal; }
+.footer-lockup .brand-text strong { color: #fff; }
+@media (max-width: 600px) {
+  .footer-lockup .brand-seal { width: 56px; height: 56px; }
+}
