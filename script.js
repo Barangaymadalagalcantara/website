@@ -53,54 +53,94 @@ modalOverlay.addEventListener("click", function(e) {
 });
 
 
+// SERVICES (managed in the admin portal; defaults are used until the
+// `services` table exists or while it is empty)
+
+const DEFAULT_SERVICES = [
+  { name: "Barangay Clearance", description: "For employment, business, school, and other purposes.",
+    requirements: "Valid identification\nProof of residency, when required\nPurpose of certification" },
+  { name: "Certificate of Residency", description: "Proof that a resident lives within the barangay.",
+    requirements: "Valid identification\nProof of residence" },
+  { name: "Certificate of Indigency", description: "Certification for qualified residents.",
+    requirements: "Valid identification\nBarangay verification\nPurpose of certification" },
+  { name: "Business Certification", description: "Barangay requirements for local businesses.",
+    requirements: "Valid identification\nBusiness details\nProof of business location" },
+  { name: "Other Services", description: "Explore additional barangay services.",
+    requirements: "Valid identification\nAdditional documents may apply" }
+];
+
+let servicesData = DEFAULT_SERVICES.slice();
+
+function renderServiceMenu() {
+  const menu = document.getElementById("serviceMenu");
+  if (!menu) return;
+  menu.innerHTML = servicesData.map((s, i) => `
+    <li role="option" tabindex="0" data-i="${i}">
+      <strong>${esc(s.name)}</strong>
+      ${s.description ? `<small>${esc(s.description)}</small>` : ""}
+    </li>`).join("") || '<li class="empty">No services available yet.</li>';
+}
+
+async function loadServices() {
+  if (sb) {
+    const { data, error } = await sb.from("services")
+      .select("name,description,requirements,sort_order")
+      .eq("is_published", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (!error && data && data.length) servicesData = data;
+  }
+  renderServiceMenu();
+}
+
+(function initServiceDropdown() {
+  const wrap = document.getElementById("serviceDropdown");
+  const btn  = document.getElementById("serviceDropdownBtn");
+  const menu = document.getElementById("serviceMenu");
+  if (!wrap || !btn || !menu) return;
+
+  const setOpen = open => {
+    menu.hidden = !open;
+    wrap.classList.toggle("open", open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+  const pick = li => {
+    if (!li || li.dataset.i === undefined) return;
+    setOpen(false);
+    openService(servicesData[Number(li.dataset.i)].name);
+  };
+
+  btn.addEventListener("click", () => setOpen(menu.hidden));
+  menu.addEventListener("click", e => pick(e.target.closest("li")));
+  menu.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(e.target.closest("li")); }
+  });
+  document.addEventListener("click", e => { if (!wrap.contains(e.target)) setOpen(false); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
+
+  renderServiceMenu();
+})();
+
+loadServices();
+
+
 // SERVICE INFORMATION
 
-function openService(service) {
+function openService(name) {
 
-  let requirements = "";
+  const svc = servicesData.find(s => s.name === name) ||
+    { name, description: "", requirements: "Valid identification\nAdditional documents may apply" };
 
-  if (service === "Barangay Clearance") {
-    requirements = `
-      <ul>
-        <li>Valid identification</li>
-        <li>Proof of residency, when required</li>
-        <li>Purpose of certification</li>
-      </ul>
-    `;
-  }
-
-  else if (service === "Certificate of Residency") {
-    requirements = `
-      <ul>
-        <li>Valid identification</li>
-        <li>Proof of residence</li>
-      </ul>
-    `;
-  }
-
-  else if (service === "Certificate of Indigency") {
-    requirements = `
-      <ul>
-        <li>Valid identification</li>
-        <li>Barangay verification</li>
-        <li>Purpose of certification</li>
-      </ul>
-    `;
-  }
-
-  else {
-    requirements = `
-      <ul>
-        <li>Valid identification</li>
-        <li>Additional documents may apply</li>
-      </ul>
-    `;
-  }
+  const items = String(svc.requirements || "").split(/\r?\n/).map(t => t.trim()).filter(Boolean);
+  const requirements = `<ul>${(items.length ? items : ["Please ask the Barangay Office for the requirements."])
+    .map(t => `<li>${esc(t)}</li>`).join("")}</ul>`;
 
   openModal(`
     <span class="section-label">BARANGAY SERVICE</span>
 
-    <h2>${service}</h2>
+    <h2>${esc(svc.name)}</h2>
+
+    ${svc.description ? `<p>${esc(svc.description)}</p>` : ""}
 
     <p>
       Please verify the current requirements, fees,
@@ -113,11 +153,13 @@ function openService(service) {
       ${requirements}
     </div>
 
-    <button class="primary-btn"
-      onclick="openRequestModal('${service}')">
+    <button class="primary-btn" id="svcRequestBtn">
       Request This Service
     </button>
   `);
+
+  document.getElementById("svcRequestBtn")
+    .addEventListener("click", () => openRequestModal(svc.name));
 }
 
 
@@ -157,25 +199,10 @@ function openRequestModal(service = "") {
             Select a service
           </option>
 
-          <option ${service === "Barangay Clearance" ? "selected" : ""}>
-            Barangay Clearance
-          </option>
-
-          <option ${service === "Certificate of Residency" ? "selected" : ""}>
-            Certificate of Residency
-          </option>
-
-          <option ${service === "Certificate of Indigency" ? "selected" : ""}>
-            Certificate of Indigency
-          </option>
-
-          <option>
-            Barangay ID
-          </option>
-
-          <option>
-            Business Certification
-          </option>
+          ${servicesData.map(sv => `
+          <option value="${esc(sv.name)}" ${service === sv.name ? "selected" : ""}>
+            ${esc(sv.name)}
+          </option>`).join("")}
 
         </select>
       </div>

@@ -6,7 +6,7 @@
    Needs upgrade.sql to have been run in Supabase.
 ========================================================= */
 
-let siteSettings = {}, directory = [], transparency = [], albums = [], galleryPhotos = [], activity = [];
+let siteSettings = {}, servicesList = [], directory = [], transparency = [], albums = [], galleryPhotos = [], activity = [];
 
 const DIR_GROUPS = [
   "Lupong Tagapamayapa",
@@ -33,6 +33,11 @@ async function loadExtra() {
   if ([s, d, t, al, ph].some(x => x.error)) {
     toast("Some new sections could not load. Have you run upgrade.sql in Supabase?", true);
   }
+  const sv = await sb.from("services").select("*")
+    .order("sort_order", { ascending: true }).order("created_at", { ascending: true });
+  if (sv.error) toast("Services could not load. Have you run services.sql in Supabase?", true);
+  servicesList = sv.data || [];
+
   siteSettings = Object.fromEntries((s.data || []).map(r => [r.key, r.value || ""]));
   directory = d.data || [];
   transparency = t.data || [];
@@ -47,6 +52,7 @@ async function loadExtra() {
 
 function renderExtra() {
   renderSettings();
+  renderServices();
   renderDirectory();
   renderTransparency();
   renderGallery();
@@ -365,6 +371,95 @@ async function deleteDirectory(id) {
 }
 
 /* =========================================================
+   SERVICES  (dropdown on the public Services section)
+========================================================= */
+$("svcSearch").addEventListener("input", renderServices);
+
+function renderServices() {
+  const q = $("svcSearch").value.trim().toLowerCase();
+  const rows = servicesList.filter(s => (s.name + " " + (s.description || "")).toLowerCase().includes(q));
+
+  if (!rows.length) {
+    $("svcAdminList").innerHTML = emptyBox(servicesList.length
+      ? "No services match your search."
+      : "No services yet. The website is showing its built-in defaults. Click the + button to add your own.");
+    return;
+  }
+
+  $("svcAdminList").innerHTML = rows.map(s => `
+    <div class="ord-row">
+      <div class="info">
+        <strong>${s.is_published ? "LIVE" : "HIDDEN"}</strong>
+        <h4>${esc(s.name)}</h4>
+        <small>${esc(s.description || "")}</small>
+      </div>
+      <div class="acts">
+        <button class="icon-btn" title="Edit" aria-label="Edit" onclick="openServiceForm('${s.id}')">&#9998;</button>
+        <button class="icon-btn del" title="Delete" aria-label="Delete" onclick="deleteService('${s.id}')">&#128465;</button>
+      </div>
+    </div>`).join("");
+}
+
+function openServiceForm(id) {
+  const s = id ? servicesList.find(x => x.id === id) : null;
+  const v = s || { name: "", description: "", requirements: "", sort_order: (servicesList.length + 1) * 10, is_published: true };
+
+  openModal(`
+    <span class="section-label">${s ? "EDIT" : "NEW"} SERVICE</span>
+    <h2>${s ? "Edit Service" : "Add Service"}</h2>
+    <form id="svcForm">
+      <div class="form-group"><label>Service name</label>
+        <input id="svName" required maxlength="100" placeholder="e.g. Certificate of Good Moral" value="${esc(v.name)}"></div>
+      <div class="form-group"><label>Short description (optional)</label>
+        <input id="svDesc" maxlength="200" value="${esc(v.description || "")}"></div>
+      <div class="form-group"><label>Requirements (one per line)</label>
+        <textarea id="svReq" rows="5" placeholder="Valid identification&#10;Proof of residency">${esc(v.requirements || "")}</textarea></div>
+      <div class="row2">
+        <div class="form-group"><label>Display order (lower shows first)</label>
+          <input id="svOrder" type="number" value="${esc(v.sort_order)}"></div>
+        <div></div>
+      </div>
+      <label class="check"><input id="svPublished" type="checkbox" ${v.is_published ? "checked" : ""}> Published (visible on the website)</label>
+      <div class="modal-actions">
+        <button class="primary-btn" type="submit" id="svSave">${s ? "Save Changes" : "Add Service"}</button>
+        ${s ? `<button class="danger-btn" type="button" onclick="deleteService('${s.id}')">Delete</button>` : ""}
+      </div>
+    </form>
+  `);
+
+  $("svcForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = $("svSave");
+    btn.disabled = true; btn.textContent = "Saving...";
+    const payload = {
+      name: $("svName").value.trim(),
+      description: $("svDesc").value.trim() || null,
+      requirements: $("svReq").value.trim() || null,
+      sort_order: parseInt($("svOrder").value, 10) || 0,
+      is_published: $("svPublished").checked
+    };
+    const { error } = s ? await sb.from("services").update(payload).eq("id", s.id)
+                        : await sb.from("services").insert(payload);
+    if (error) {
+      btn.disabled = false; btn.textContent = s ? "Save Changes" : "Add Service";
+      return toast(error.code === "23505" ? "A service with that name already exists." : "Save failed.", true);
+    }
+    logActivity(s ? "update" : "insert", "services", payload.name);
+    closeModal(); toast(s ? "Service updated." : "Service added."); loadAll();
+  });
+}
+
+async function deleteService(id) {
+  const s = servicesList.find(x => x.id === id);
+  if (!s) return;
+  if (!confirm(`Delete "${s.name}" from the Services list? This cannot be undone.`)) return;
+  const { error } = await sb.from("services").delete().eq("id", id);
+  if (error) return toast("Delete failed.", true);
+  logActivity("delete", "services", s.name);
+  closeModal(); toast("Deleted."); loadAll();
+}
+
+/* =========================================================
    3. TRANSPARENCY
 ========================================================= */
 const docUrl = p => sb.storage.from("documents").getPublicUrl(p).data.publicUrl;
@@ -620,7 +715,7 @@ const ACTION_LABELS = { insert: "Added", update: "Edited", delete: "Deleted", pr
 const TABLE_LABELS = {
   service_requests: "Service request", concerns: "Concern", announcements: "Announcement",
   ordinances: "Ordinance / resolution", officials: "Official", emergency_contacts: "Emergency contact",
-  profile_items: "Barangay profile", directory_members: "Directory", transparency_docs: "Transparency document",
+  profile_items: "Barangay profile", services: "Service", directory_members: "Directory", transparency_docs: "Transparency document",
   gallery_albums: "Gallery album", gallery_photos: "Gallery photos", site_settings: "Site settings",
   admins: "Editor access", certificate: "Certificate", requests_csv: "Requests CSV", concerns_csv: "Concerns CSV",
   activity_csv: "Activity log CSV"

@@ -58,6 +58,7 @@
       <button class="adm-tab" data-tab="emergency">Emergency Contacts</button>
       <button class="adm-tab" data-tab="profile">Barangay Profile</button>
       <button class="adm-tab" data-tab="settings">Site Settings</button>
+      <button class="adm-tab" data-tab="services">Services</button>
       <button class="adm-tab" data-tab="directory">Directory</button>
       <button class="adm-tab" data-tab="transparency">Transparency</button>
       <button class="adm-tab" data-tab="gallery">Gallery</button>
@@ -157,6 +158,17 @@
     <section class="panel" id="panel-settings" hidden>
       <p class="hint">One place for the Barangay Hall's contact details, the location map and the About text. Changes appear on the website footer, the Emergency list and the <b>History &amp; Location</b> section right after you save.</p>
       <div id="settingsAdmin"></div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="panel" id="panel-services" hidden>
+      <div class="toolbar">
+        <input type="search" id="svcSearch" placeholder="Search services...">
+        <button class="outline-btn" onclick="loadAll()">&#8635; Refresh</button>
+        <button class="add-btn" title="Add service" aria-label="Add service" onclick="openServiceForm()">+</button>
+      </div>
+      <p class="hint">These are the choices in the <b>Services</b> dropdown on the website and in the request form. Add a new service with <b>+</b>, edit with the pencil, or delete it with the trash can. Put each requirement on its own line.</p>
+      <div class="ord-admin-list" id="svcAdminList"></div>
     </section>
 
     <!-- DIRECTORY -->

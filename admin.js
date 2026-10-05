@@ -154,7 +154,7 @@ function updateTabCounts() {
   };
   document.querySelectorAll(".adm-tab").forEach(t => {
     const base = t.dataset.tab;
-    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Officials", emergency: "Emergency Contacts", profile: "Barangay Profile", settings: "Site Settings", directory: "Directory", transparency: "Transparency", gallery: "Gallery", editors: "Editors", activity: "Activity Log" }[base];
+    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Officials", emergency: "Emergency Contacts", profile: "Barangay Profile", settings: "Site Settings", services: "Services", directory: "Directory", transparency: "Transparency", gallery: "Gallery", editors: "Editors", activity: "Activity Log" }[base];
     t.innerHTML = esc(label) + (counts[base] ? `<span class="count">${counts[base]}</span>` : "");
   });
 }
@@ -164,7 +164,7 @@ $("admTabs").addEventListener("click", e => {
   const b = e.target.closest(".adm-tab");
   if (!b) return;
   document.querySelectorAll(".adm-tab").forEach(t => t.classList.toggle("active", t === b));
-  ["requests", "concerns", "announcements", "ordinances", "officials", "emergency", "profile", "settings", "directory", "transparency", "gallery", "editors", "activity"].forEach(p => ($("panel-" + p).hidden = p !== b.dataset.tab));
+  ["requests", "concerns", "announcements", "ordinances", "officials", "emergency", "profile", "settings", "services", "directory", "transparency", "gallery", "editors", "activity"].forEach(p => ($("panel-" + p).hidden = p !== b.dataset.tab));
 });
 
 /* ---------- SERVICE REQUESTS ---------- */

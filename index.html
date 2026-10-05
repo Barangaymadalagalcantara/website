@@ -193,50 +193,13 @@
       </p>
     </div>
 
-    <div class="services-grid">
-
-      <div class="service-card" onclick="openService('Barangay Clearance')">
-        <div class="service-icon">📄</div>
-        <h3>Barangay Clearance</h3>
-        <p>For employment, business, school, and other purposes.</p>
-        <span>View Requirements →</span>
-      </div>
-
-      <div class="service-card" onclick="openService('Certificate of Residency')">
-        <div class="service-icon">🏠</div>
-        <h3>Certificate of Residency</h3>
-        <p>Proof that a resident lives within the barangay.</p>
-        <span>View Requirements →</span>
-      </div>
-
-      <div class="service-card" onclick="openService('Certificate of Indigency')">
-        <div class="service-icon">📋</div>
-        <h3>Certificate of Indigency</h3>
-        <p>Certification for qualified residents.</p>
-        <span>View Requirements →</span>
-      </div>
-
-      <div class="service-card" onclick="openService('Barangay ID')">
-        <div class="service-icon">🪪</div>
-        <h3>Barangay ID</h3>
-        <p>Information about barangay identification.</p>
-        <span>View Requirements →</span>
-      </div>
-
-      <div class="service-card" onclick="openService('Business Certification')">
-        <div class="service-icon">🏪</div>
-        <h3>Business Certification</h3>
-        <p>Barangay requirements for local businesses.</p>
-        <span>View Requirements →</span>
-      </div>
-
-      <div class="service-card" onclick="openService('Other Services')">
-        <div class="service-icon">＋</div>
-        <h3>Other Services</h3>
-        <p>Explore additional barangay services.</p>
-        <span>View Services →</span>
-      </div>
-
+    <div class="service-dropdown" id="serviceDropdown">
+      <button type="button" class="service-dropdown-btn" id="serviceDropdownBtn"
+              aria-haspopup="listbox" aria-expanded="false">
+        <span>Select a Service</span>
+        <span class="caret" aria-hidden="true">&#9662;</span>
+      </button>
+      <ul class="service-dropdown-menu" id="serviceMenu" role="listbox" hidden></ul>
     </div>
 
   </section>
