@@ -45,8 +45,12 @@
         <ul class="nav-dropdown-menu" id="serviceMenu" role="listbox" hidden></ul>
       </div>
       <a href="#announcements">Announcements</a>
-      <a href="#ordinances">Ordinances</a>
-      <a href="#transparency">Transparency</a>
+      <div class="nav-dropdown" id="navTransparency">
+        <button type="button" class="nav-dropdown-btn" id="navTransparencyBtn" aria-haspopup="listbox" aria-expanded="false">
+          Transparency <span class="caret" aria-hidden="true">&#9662;</span>
+        </button>
+        <ul class="nav-dropdown-menu" id="transparencyMenu" role="listbox" hidden></ul>
+      </div>
       <a href="#events">Events</a>
       <a href="#about">About</a>
       <a href="#officials">Officials</a>
@@ -287,6 +291,10 @@
     <div class="ord-list" id="trList"><div class="off-loading">Loading documents...</div></div>
 
   </section>
+
+
+  <!-- SEPARATE TRANSPARENCY SECTIONS (Awards, Bids and Awards Committee, ...) -->
+  <div id="trExtraSections"></div>
 
 
   <!-- EVENTS -->

@@ -93,26 +93,23 @@ async function loadServices() {
   renderServiceMenu();
 }
 
-let setServicesMenuOpen = () => {};
-
-(function initServiceDropdown() {
-  const wrap = document.getElementById("navServices");
-  const btn  = document.getElementById("navServicesBtn");
-  const menu = document.getElementById("serviceMenu");
-  if (!wrap || !btn || !menu) return;
+// Generic top-navigation dropdown. onPick(li) runs when an item is chosen.
+function initNavDropdown(wrapId, btnId, menuId, onPick) {
+  const wrap = document.getElementById(wrapId);
+  const btn  = document.getElementById(btnId);
+  const menu = document.getElementById(menuId);
+  if (!wrap || !btn || !menu) return () => {};
 
   const setOpen = open => {
     menu.hidden = !open;
     wrap.classList.toggle("open", open);
     btn.setAttribute("aria-expanded", open ? "true" : "false");
   };
-  setServicesMenuOpen = setOpen;
-
   const pick = li => {
     if (!li || li.dataset.i === undefined) return;
     setOpen(false);
     document.getElementById("mainNav").classList.remove("active");
-    openService(servicesData[Number(li.dataset.i)].name);
+    onPick(Number(li.dataset.i));
   };
 
   btn.addEventListener("click", () => setOpen(menu.hidden));
@@ -122,9 +119,12 @@ let setServicesMenuOpen = () => {};
   });
   document.addEventListener("click", e => { if (!wrap.contains(e.target)) setOpen(false); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
+  return setOpen;
+}
 
-  renderServiceMenu();
-})();
+const setServicesMenuOpen = initNavDropdown("navServices", "navServicesBtn", "serviceMenu",
+  i => openService(servicesData[i].name));
+renderServiceMenu();
 
 // Used by the hero and Services-section buttons
 function openServicesMenu() {
