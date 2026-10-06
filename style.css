@@ -1377,3 +1377,34 @@ nav a { white-space: nowrap; }
 /* Directory pop-up + admin group headers */
 .dir-modal-grid { margin-top: 18px; }
 .dir-admin-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+/* ===== MOBILE MENU FIX =====
+   The brand block could not shrink, so on phones it pushed the menu button off-screen. */
+.nav-admin-link { display: none; }
+.privacy-notice { background: #fbf6ea; border: 1px solid #ecd9a6; border-left: 4px solid #f4b81a; border-radius: 10px; padding: 12px 14px; margin: 4px 0 16px; font-size: 12.5px; line-height: 1.5; color: #4a3a30; }
+.privacy-notice strong { display: block; font-size: 13px; color: #4e2c1a; margin-bottom: 4px; }
+.privacy-notice p { margin: 0 0 8px; }
+.privacy-notice .check { display: flex; gap: 8px; align-items: flex-start; font-weight: 600; cursor: pointer; }
+.privacy-notice .check input { width: auto; margin-top: 3px; flex-shrink: 0; }
+
+@media (max-width: 1150px) {
+  .navbar { gap: 12px; }
+  .brand { flex-shrink: 1; min-width: 0; }
+  .brand-text { min-width: 0; }
+  .brand-text em, .brand-text strong { white-space: normal; }
+  .menu-toggle {
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: auto;
+    width: 46px; height: 46px; font-size: 24px; line-height: 1; cursor: pointer;
+    color: #fff; background: rgba(255,255,255,.14); border: 2px solid rgba(255,255,255,.55); border-radius: 10px;
+  }
+  nav { top: 100%; max-height: calc(100vh - 100px); max-height: calc(100dvh - 100px); overflow-y: auto; z-index: 300; }
+  nav .nav-admin-link { display: block; margin-top: 4px; padding: 10px 18px; background: #fff; color: var(--primary-dark); border-radius: 8px; text-align: center; align-self: stretch; }
+  .nav-dropdown-menu { color: #2a1609; }
+}
+@media (max-width: 600px) {
+  .navbar { padding: 0 3%; }
+  .brand { gap: 8px; }
+  .brand-seal { width: 46px; height: 46px; flex-shrink: 0; }
+  .brand-text em { font-size: 10px; line-height: 1.2; }
+  .brand-text strong { font-size: 14px; }
+}

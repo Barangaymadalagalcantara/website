@@ -21,9 +21,31 @@ const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV
 
 // MOBILE MENU
 
-document.getElementById("menuToggle").addEventListener("click", () => {
-  document.getElementById("mainNav").classList.toggle("active");
-});
+(function initMobileMenu() {
+  const btn = document.getElementById("menuToggle"), nav = document.getElementById("mainNav");
+  const sync = () => {
+    const open = nav.classList.contains("active");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    btn.textContent = open ? "\u2715" : "\u2630";
+  };
+  btn.addEventListener("click", () => { nav.classList.toggle("active"); sync(); });
+  // close the phone menu after choosing a plain link
+  nav.addEventListener("click", e => {
+    if (e.target.closest("a")) { nav.classList.remove("active"); sync(); }
+  });
+  new MutationObserver(sync).observe(nav, { attributes: true, attributeFilter: ["class"] });
+})();
+
+// DATA PRIVACY NOTICE (Data Privacy Act of 2012, RA 10173) - shown on forms that collect personal data
+function privacyNoticeHTML(id, what) {
+  return `
+    <div class="privacy-notice">
+      <strong>Data Privacy Notice</strong>
+      <p>In line with the Data Privacy Act of 2012 (RA 10173), Barangay Madalag collects your ${what} only to process and respond to this submission and to keep records as required by law. Your information is accessed only by authorized barangay personnel, is not sold or shared with others except when required by law, and is kept only as long as needed. You may ask the Barangay Office to see, correct or delete your information.</p>
+      <label class="check"><input type="checkbox" id="${id}" required> I have read this notice and agree to the collection and use of my personal data for this purpose.</label>
+    </div>`;
+}
 
 
 // SCROLL
@@ -234,6 +256,8 @@ function openRequestModal(service = "") {
           required></textarea>
       </div>
 
+      ${privacyNoticeHTML("requestPrivacy", "name, contact number and request details")}
+
       <button class="primary-btn" type="submit">
         Submit Request
       </button>
@@ -434,6 +458,8 @@ function openConcernModal() {
         <label>Description</label>
         <textarea id="concernDescription" required placeholder="Describe the concern..."></textarea>
       </div>
+
+      ${privacyNoticeHTML("concernPrivacy", "name and the details of your concern")}
 
       <button class="primary-btn" type="submit">Submit Concern</button>
 

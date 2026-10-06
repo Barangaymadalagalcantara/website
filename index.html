@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <button class="menu-toggle" id="menuToggle">☰</button>
+    <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">☰</button>
 
     <nav id="mainNav">
       <a href="#home">Home</a>
@@ -110,6 +110,7 @@
         </ul>
       </div>
       <a href="#contact">Contact</a>
+      <a href="#" class="nav-admin-link" onclick="openAdminLogin();return false;">Admin Portal</a>
     </nav>
 
     <button class="admin-btn" onclick="openAdminLogin()">
