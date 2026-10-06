@@ -953,24 +953,6 @@ document.getElementById("offTabs").addEventListener("click", e => {
 
 loadOfficials();
 
-// Officials dropdown (top navigation): each choice opens its content in a pop-up
-const setOfficialsMenuOpen = initNavDropdown("navOfficials", "navOfficialsBtn", "officialsMenu", key => {
-  const isCurrent = key === "current";
-  const src = document.getElementById(isCurrent ? "offCurrent" : "offTimeline");
-  openWideModal(`
-    <span class="section-label">BARANGAY LEADERSHIP</span>
-    <h2>${isCurrent ? "Current Officials" : "Timeline of Past Officials"}</h2>
-    <div class="officials-modal">${src ? src.innerHTML : ""}</div>`);
-});
-
-// Used by the footer link
-function openOfficialsMenu() {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  document.getElementById("mainNav").classList.add("active");
-  setOfficialsMenuOpen(true);
-}
-
-
 /* =========================
    BARANGAY PROFILE (DEMOGRAPHICS)
 ========================= */

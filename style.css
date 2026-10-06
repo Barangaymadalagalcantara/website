@@ -1373,3 +1373,7 @@ nav a { white-space: nowrap; }
 .modal.wide .prof-stats { grid-template-columns: 1fr; max-width: 420px; margin: 8px 0 0; }
 .modal.wide .prof-card { border: 0; padding: 0; }
 .modal.wide .prof-card h3 { display: none; }
+
+/* Directory pop-up + admin group headers */
+.dir-modal-grid { margin-top: 18px; }
+.dir-admin-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }

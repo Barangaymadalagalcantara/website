@@ -17,7 +17,7 @@
     </ul>
     <ul class="right">
       <li><a href="#contact" onclick="openEmergency()">Emergency Hotlines</a></li>
-      <li><a href="#directory">Directory</a></li>
+      <li><a href="#" onclick="openDirectoryMenu();return false;">Directory</a></li>
       <li><a href="#contact">Careers</a></li>
       <li><a href="https://www.gov.ph" target="_blank" rel="noopener">GOV.PH</a></li>
     </ul>
@@ -87,13 +87,26 @@
           </li>
         </ul>
       </div>
-      <div class="nav-dropdown" id="navOfficials">
-        <button type="button" class="nav-dropdown-btn" id="navOfficialsBtn" aria-haspopup="listbox" aria-expanded="false">
-          Officials <span class="caret" aria-hidden="true">&#9662;</span>
+      <div class="nav-dropdown" id="navDirectory">
+        <button type="button" class="nav-dropdown-btn" id="navDirectoryBtn" aria-haspopup="listbox" aria-expanded="false">
+          Barangay Directory <span class="caret" aria-hidden="true">&#9662;</span>
         </button>
-        <ul class="nav-dropdown-menu" id="officialsMenu" role="listbox" hidden>
-          <li role="option" tabindex="0" data-i="current"><strong>Current Officials</strong></li>
-          <li role="option" tabindex="0" data-i="timeline"><strong>Timeline of Past Officials</strong></li>
+        <ul class="nav-dropdown-menu" id="directoryMenu" role="listbox" hidden>
+          <li class="has-sub">
+            <button type="button" class="sub-toggle" id="officialsToggle" aria-expanded="false">
+              <strong>Barangay Officials</strong> <span class="caret" aria-hidden="true">&#9662;</span>
+            </button>
+            <ul class="nav-sub" id="officialsSub" hidden>
+              <li role="option" tabindex="0" data-i="off:current">Current Officials</li>
+              <li role="option" tabindex="0" data-i="off:timeline">Timeline of Past Officials</li>
+            </ul>
+          </li>
+          <li role="option" tabindex="0" data-i="SK Officials">SK Officials</li>
+          <li role="option" tabindex="0" data-i="Lupong Tagapamayapa">Lupong Tagapamayapa</li>
+          <li role="option" tabindex="0" data-i="Barangay Tanod">Barangay Tanod</li>
+          <li role="option" tabindex="0" data-i="Barangay Health Workers (BHW)">Barangay Health Workers (BHW)</li>
+          <li role="option" tabindex="0" data-i="Barangay Nutrition Scholars (BNS)">Barangay Nutrition Scholars (BNS)</li>
+          <li role="option" tabindex="0" data-i="Senior Citizens Organization">Senior Citizens Organization</li>
         </ul>
       </div>
       <a href="#contact">Contact</a>
@@ -281,20 +294,6 @@
   </section>
 
 
-  <!-- DIRECTORY -->
-  <section class="section directory-section" id="directory">
-
-    <div class="section-heading centered">
-      <span class="section-label">COMMUNITY SERVANTS</span>
-      <h2>Barangay Directory</h2>
-      <p>The Lupon, health workers, tanod, SK council and committees who serve Barangay Madalag.</p>
-    </div>
-
-    <div id="directoryBody"><div class="off-loading">Loading directory...</div></div>
-
-  </section>
-
-
   <!-- EMERGENCY -->
   <section class="emergency-section">
 
@@ -337,8 +336,8 @@
         <a href="#gallery">Photo Gallery</a>
         <a href="#" onclick="openAboutItem('history');return false;">History &amp; Location</a>
         <a href="#" onclick="openAboutMenu(true);return false;">Barangay Profile</a>
-        <a href="#" onclick="openOfficialsMenu();return false;">Officials</a>
-        <a href="#directory">Directory</a>
+        <a href="#" onclick="openOfficialsMenu();return false;">Barangay Officials</a>
+        <a href="#" onclick="openDirectoryMenu();return false;">Barangay Directory</a>
       </div>
 
       <div>

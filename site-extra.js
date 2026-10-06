@@ -386,10 +386,7 @@ async function loadGallery() {
    DIRECTORY
 ========================================================= */
 let dirData = [];
-const DIR_ORDER = [
-  "Lupong Tagapamayapa", "Barangay Health Workers (BHW)", "Barangay Tanod", "SK Council",
-  "Barangay Nutrition Scholar / Day Care", "Committees & Other Staff"
-];
+const DIR_ORDER = ["SK Officials", "Lupong Tagapamayapa", "Barangay Tanod", "Barangay Health Workers (BHW)", "Barangay Nutrition Scholars (BNS)", "Senior Citizens Organization"];
 const dirPhoto = p => (p && sb) ? sb.storage.from("directory").getPublicUrl(p).data.publicUrl : "";
 
 function dirFrame(m, size) {
@@ -400,29 +397,19 @@ function dirFrame(m, size) {
   return `<div class="photo-frame ${size || ""}"><div class="pf-inner">${inner}</div></div>`;
 }
 
-function renderDirectory() {
-  const box = document.getElementById("directoryBody");
-  if (!box) return;
-
-  if (!dirData.length) {
-    box.innerHTML = '<div class="off-empty">The barangay directory will be posted here soon.</div>';
-    return;
-  }
-
-  const groups = new Map();
-  dirData.forEach(m => { if (!groups.has(m.group_name)) groups.set(m.group_name, []); groups.get(m.group_name).push(m); });
-  const rank = g => { const i = DIR_ORDER.indexOf(g); return i === -1 ? 99 : i; };
-
-  box.innerHTML = [...groups.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b)).map(g => `
-    <div class="dir-group">
-      <h3>${esc(g)} <small>${groups.get(g).length}</small></h3>
-      <div class="dir-grid">${groups.get(g).map(m => `
-        <button class="dir-card" onclick="openDirMember('${esc(m.id)}')">
-          ${dirFrame(m, "md")}
-          <strong>${esc(m.full_name)}</strong>
-          ${m.role_title ? `<span>${esc(m.role_title)}</span>` : ""}
-        </button>`).join("")}</div>
-    </div>`).join("");
+// Opens one directory group (SK Officials, Lupon, Tanod, ...) in a pop-up
+function openDirGroup(group) {
+  const list = dirData.filter(m => m.group_name === group);
+  openWideModal(`
+    <span class="section-label">BARANGAY DIRECTORY</span>
+    <h2>${esc(group)}</h2>
+    ${list.length ? `<div class="dir-grid dir-modal-grid">${list.map(m => `
+      <button class="dir-card" onclick="openDirMember('${esc(m.id)}')">
+        ${dirFrame(m, "md")}
+        <strong>${esc(m.full_name)}</strong>
+        ${m.role_title ? `<span>${esc(m.role_title)}</span>` : ""}
+      </button>`).join("")}</div>`
+    : `<div class="off-empty">The list of ${esc(group)} will be posted here soon.</div>`}`);
 }
 
 function openDirMember(id) {
@@ -434,6 +421,7 @@ function openDirMember(id) {
       <span class="section-label">${esc(m.group_name.toUpperCase())}</span>
       <h2>${esc(m.full_name)}</h2>
       ${m.role_title ? `<p>${esc(m.role_title)}</p>` : ""}
+      <p><button class="outline-btn" type="button" onclick="openDirGroup('${esc(m.group_name).replace(/'/g, "\\'")}')">&larr; Back to ${esc(m.group_name)}</button></p>
     </div>`);
 }
 
@@ -443,8 +431,42 @@ async function loadDirectory() {
       .order("sort_order", { ascending: true }).order("full_name", { ascending: true });
     if (!error && data) dirData = data;
   }
-  renderDirectory();
 }
+
+/* ---------- BARANGAY DIRECTORY DROPDOWN (top navigation) ---------- */
+const setDirMenuOpen = initNavDropdown("navDirectory", "navDirectoryBtn", "directoryMenu", key => {
+  if (key === "off:current" || key === "off:timeline") {
+    const isCurrent = key === "off:current";
+    const src = document.getElementById(isCurrent ? "offCurrent" : "offTimeline");
+    openWideModal(`
+      <span class="section-label">BARANGAY OFFICIALS</span>
+      <h2>${isCurrent ? "Current Officials" : "Timeline of Past Officials"}</h2>
+      <div class="officials-modal">${src ? src.innerHTML : ""}</div>`);
+  } else {
+    openDirGroup(key);
+  }
+});
+
+(function initOfficialsSub() {
+  const t = document.getElementById("officialsToggle"), sub = document.getElementById("officialsSub");
+  if (!t || !sub) return;
+  t.addEventListener("click", () => {
+    sub.hidden = !sub.hidden;
+    t.setAttribute("aria-expanded", sub.hidden ? "false" : "true");
+  });
+})();
+
+function openDirectoryMenu(expandOfficials) {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("mainNav").classList.add("active");
+  setDirMenuOpen(true);
+  if (expandOfficials) {
+    document.getElementById("officialsSub").hidden = false;
+    document.getElementById("officialsToggle").setAttribute("aria-expanded", "true");
+  }
+}
+// Used by the footer / old links
+function openOfficialsMenu() { openDirectoryMenu(true); }
 
 /* ---------- START ---------- */
 renderAbout();

@@ -150,3 +150,5 @@ tr.empty td { text-align: center; color: var(--text); padding: 30px; }
 .cert-preview .cert-line { border-top: 1px solid #111; font-weight: bold; padding-top: 4px; }
 .cert-preview .cert-foot { margin-top: 26px; font-size: 10pt; border-top: 1px solid #bbb; padding-top: 8px; }
 @media (max-width: 600px) { .cert-preview-wrap { height: 420px; } .cert-preview { transform: scale(.42); } }
+
+.dir-admin-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 18px; }

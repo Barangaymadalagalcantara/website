@@ -8,14 +8,7 @@
 
 let siteSettings = {}, servicesList = [], eventsList = [], trMenuList = [], directory = [], transparency = [], albums = [], galleryPhotos = [], activity = [];
 
-const DIR_GROUPS = [
-  "Lupong Tagapamayapa",
-  "Barangay Health Workers (BHW)",
-  "Barangay Tanod",
-  "SK Council",
-  "Barangay Nutrition Scholar / Day Care",
-  "Committees & Other Staff"
-];
+const DIR_GROUPS = ["SK Officials", "Lupong Tagapamayapa", "Barangay Tanod", "Barangay Health Workers (BHW)", "Barangay Nutrition Scholars (BNS)", "Senior Citizens Organization"];
 const TRANSPARENCY_CATEGORIES = ["Annual Budget", "Annual Investment Plan", "Financial Report", "Barangay Development Plan", "Other"];
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -246,18 +239,17 @@ function renderDirectory() {
   const q = $("dirSearch").value.trim().toLowerCase();
   const rows = directory.filter(m => (m.full_name + " " + m.group_name + " " + (m.role_title || "")).toLowerCase().includes(q));
 
-  if (!rows.length) {
-    $("dirAdminList").innerHTML = emptyBox("No one in the directory yet. Click the + button to add a member.");
-    return;
-  }
-
-  const groups = new Map();
+  const groups = new Map(DIR_GROUPS.map(g => [g, []]));
   rows.forEach(m => { if (!groups.has(m.group_name)) groups.set(m.group_name, []); groups.get(m.group_name).push(m); });
-  const order = g => { const i = DIR_GROUPS.indexOf(g); return i === -1 ? 99 : i; };
 
-  $("dirAdminList").innerHTML = [...groups.keys()].sort((a, b) => order(a) - order(b) || a.localeCompare(b)).map(g => `
-    <h4 class="off-group-title">${esc(g)} <span class="badge hidden-post">${groups.get(g).length}</span></h4>
-    <div class="ord-admin-list">${groups.get(g).map(m => `
+  $("dirAdminList").innerHTML = [...groups.keys()].filter(g => !q || groups.get(g).length).map(g => {
+    const legacy = !DIR_GROUPS.includes(g);
+    return `
+    <div class="dir-admin-head">
+      <h4 class="off-group-title">${esc(g)} <span class="badge hidden-post">${groups.get(g).length}</span>${legacy ? ' <span class="badge hidden-post">not in dropdown - edit to move</span>' : ""}</h4>
+      ${legacy ? "" : `<button class="outline-btn" type="button" onclick="openDirectoryForm(null, '${esc(g)}')">+ Add member</button>`}
+    </div>
+    ${groups.get(g).length ? `<div class="ord-admin-list">${groups.get(g).map(m => `
       <div class="ord-row">
         ${frameHTML(m.photo_path ? dirPhotoUrl(m.photo_path) : "", m.full_name, "sm")}
         <div class="info">
@@ -269,13 +261,15 @@ function renderDirectory() {
           <button class="icon-btn" title="Edit" aria-label="Edit" onclick="openDirectoryForm('${m.id}')">&#9998;</button>
           <button class="icon-btn del" title="Delete" aria-label="Delete" onclick="deleteDirectory('${m.id}')">&#128465;</button>
         </div>
-      </div>`).join("")}</div>`).join("");
+      </div>`).join("")}</div>`
+    : '<p class="hint" style="margin:4px 0 18px">No members yet.</p>'}`;
+  }).join("");
 }
 
-function openDirectoryForm(id) {
+function openDirectoryForm(id, presetGroup) {
   const m = id ? directory.find(x => x.id === id) : null;
-  const v = m || { full_name: "", group_name: DIR_GROUPS[0], role_title: "", photo_path: null, sort_order: 0, is_published: true };
-  const usedGroups = [...new Set([...DIR_GROUPS, ...directory.map(x => x.group_name)])];
+  const v = m || { full_name: "", group_name: presetGroup || DIR_GROUPS[0], role_title: "", photo_path: null, sort_order: 0, is_published: true };
+  const groupOpts = DIR_GROUPS.includes(v.group_name) ? DIR_GROUPS : [v.group_name, ...DIR_GROUPS];
 
   openModal(`
     <span class="section-label">${m ? "EDIT" : "NEW"} DIRECTORY MEMBER</span>
@@ -293,10 +287,9 @@ function openDirectoryForm(id) {
           <div class="form-group"><label>Full name</label>
             <input id="dmName" required maxlength="120" value="${esc(v.full_name)}"></div>
           <div class="form-group"><label>Group</label>
-            <input id="dmGroup" required maxlength="80" list="dmGroups" value="${esc(v.group_name)}">
-            <datalist id="dmGroups">${usedGroups.map(g => `<option value="${esc(g)}">`).join("")}</datalist></div>
+            <select id="dmGroup" required>${groupOpts.map(g => `<option value="${esc(g)}" ${g === v.group_name ? "selected" : ""}>${esc(g)}${DIR_GROUPS.includes(g) ? "" : " (old group)"}</option>`).join("")}</select></div>
           <div class="form-group"><label>Role / title (optional)</label>
-            <input id="dmRole" maxlength="120" placeholder="e.g. Chairperson, Head Tanod, BHW President" value="${esc(v.role_title || "")}"></div>
+            <input id="dmRole" maxlength="120" placeholder="e.g. SK Chairperson, Head Tanod, BHW President" value="${esc(v.role_title || "")}"></div>
         </div>
       </div>
       <div class="row2">

@@ -154,7 +154,7 @@ function updateTabCounts() {
   };
   document.querySelectorAll(".adm-tab").forEach(t => {
     const base = t.dataset.tab;
-    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Officials", emergency: "Emergency Contacts", profile: "Barangay Profile", settings: "Site Settings", services: "Services", events: "Events", directory: "Directory", transparency: "Transparency", gallery: "Gallery", editors: "Editors", activity: "Activity Log" }[base];
+    const label = { requests: "Service Requests", concerns: "Concerns", announcements: "Announcements", ordinances: "Ordinances & Resolutions", officials: "Barangay Officials", emergency: "Emergency Contacts", profile: "Barangay Profile", settings: "Site Settings", services: "Services", events: "Events", directory: "Barangay Directory", transparency: "Transparency", gallery: "Gallery", editors: "Editors", activity: "Activity Log" }[base];
     t.innerHTML = esc(label) + (counts[base] ? `<span class="count">${counts[base]}</span>` : "");
   });
 }
